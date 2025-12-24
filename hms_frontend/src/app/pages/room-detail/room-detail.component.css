@@ -1,0 +1,365 @@
+/* =========================================
+   Base & Layout
+   ========================================= */
+:host {
+  display: block;
+  background-color: #f8fafc; /* Light gray background for the whole page */
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Link quay lại (Back link) */
+.back-link {
+  display: inline-block;
+  color: #14b8a6; /* Teal color */
+  text-decoration: none;
+  font-weight: 500;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #0d9488;
+  text-decoration: underline;
+}
+
+/* Layout chính: Chia 2 cột (Ảnh bên trái - Sidebar bên phải) */
+.room-detail-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  margin-bottom: 60px;
+}
+
+@media (min-width: 992px) {
+  /* Trên màn hình lớn, chia tỉ lệ 2/3 cho ảnh và 1/3 cho sidebar */
+  .room-detail-container {
+    grid-template-columns: 2fr 1fr;
+    align-items: start;
+  }
+}
+
+/* =========================================
+   Left Column: Image Gallery
+   ========================================= */
+.room-images {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Ảnh chính lớn */
+.main-image {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%; /* Tỉ lệ khung hình 16:9 */
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.main-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Nút điều hướng ảnh (Prev/Next) */
+.nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 24px;
+  color: #1a202c;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  opacity: 0; /* Ẩn mặc định */
+}
+
+.main-image:hover .nav-btn {
+  opacity: 1; /* Hiện khi di chuột vào ảnh */
+}
+
+.nav-btn:hover {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-btn.prev { left: 16px; }
+.nav-btn.next { right: 16px; }
+
+/* Dải ảnh thu nhỏ (Thumbnails) */
+.thumbnail-gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4 ảnh một hàng */
+  gap: 12px;
+}
+
+.thumbnail-gallery img {
+  width: 100%;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.thumbnail-gallery img:hover {
+  opacity: 1;
+}
+
+/* Style cho ảnh thumbnail đang được chọn */
+.thumbnail-gallery img.active {
+  opacity: 1;
+  border-color: #14b8a6; /* Viền màu Teal */
+}
+
+/* =========================================
+   Right Column: Booking Sidebar
+   ========================================= */
+.booking-sidebar {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  /* Giúp sidebar trôi theo khi cuộn trang trên màn hình lớn */
+  position: sticky;
+  top: 24px;
+}
+
+/* Phần hiển thị giá */
+.price-box {
+  margin-bottom: 24px;
+}
+
+.price-box .price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.price-box .amount {
+  font-size: 36px;
+  font-weight: 800;
+  color: #14b8a6;
+}
+
+.price-box .per {
+  font-size: 16px;
+  color: #64748b;
+}
+
+.tax-info {
+  font-size: 14px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Form đặt phòng */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.form-group input[type="date"] {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #1e293b;
+  transition: border-color 0.2s;
+  outline: none;
+}
+
+.form-group input[type="date"]:focus {
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.1);
+}
+
+/* Nút đặt phòng full chiều rộng */
+.btn-book-full {
+  width: 100%;
+  padding: 16px;
+  background: #14b8a6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 32px;
+}
+
+.btn-book-full:hover:not(:disabled) {
+  background: #0d9488;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20, 184, 166, 0.2);
+}
+
+.btn-book-full:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Phần lợi ích (Benefits) bên dưới nút đặt */
+.benefits {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 24px;
+}
+
+.benefit-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+/* Giả lập icon bằng CSS nếu chưa có font icon */
+.benefit-item i {
+  font-size: 20px;
+  color: #14b8a6;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.benefit-item strong {
+  display: block;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
+.benefit-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* =========================================
+   Bottom Section: Room Details & Amenities
+   ========================================= */
+.room-info-section {
+  max-width: 800px; /* Giới hạn chiều rộng để dễ đọc */
+}
+
+.room-info-section h1 {
+  font-size: 32px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 16px;
+}
+
+/* Thông tin meta (số khách, số phòng...) */
+.room-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.room-meta span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.room-meta i {
+  color: #14b8a6;
+  font-size: 18px;
+}
+
+/* Mô tả phòng */
+.description {
+  font-size: 16px;
+  line-height: 1.7;
+  color: #334155;
+  margin-bottom: 40px;
+}
+
+/* Các section Tiện nghi (Amenities) và Tính năng (Features) */
+.section {
+  margin-bottom: 40px;
+}
+
+.section h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 20px;
+}
+
+/* Grid cho Amenities và Features */
+.amenities-grid,
+.features-grid {
+  display: grid;
+  /* Tự động chia cột, mỗi cột tối thiểu 200px */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.amenity-item,
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Icon dấu tích xanh */
+.amenity-item i,
+.feature-item i {
+  color: #14b8a6;
+  font-size: 16px;
+  /* Nếu bạn chưa có bộ icon, dòng dưới sẽ tạo một dấu chấm tròn xanh tạm thời */
+  /* width: 8px; height: 8px; background: #14b8a6; border-radius: 50%; */
+}
+
+.amenity-item span,
+.feature-item span {
+  font-size: 14px;
+  color: #334155;
+  font-weight: 500;
+}

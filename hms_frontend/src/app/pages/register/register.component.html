@@ -1,0 +1,76 @@
+<div class="auth-container">
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <h1>Chào Mừng Đến Khách Sạn</h1>
+      <p>Trải nghiệm sang trọng và thoải mái với hệ thống quản lý khách sạn đẳng cấp thế giới</p>
+    </div>
+  </div>
+  
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <div class="logo">
+        <h1 style="color: #2c5282; margin: 0;">🏨 Hotel MS</h1>
+      </div>
+      
+      <h2>Tạo Tài Khoản</h2>
+      <p class="subtitle">Đăng ký để bắt đầu hành trình của bạn</p>
+      
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Tên đăng nhập</label>
+          <input 
+            type="text" 
+            formControlName="username" 
+            placeholder="Nhập tên đăng nhập"
+            [class.error]="registerForm.get('username')?.invalid && registerForm.get('username')?.touched">
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ</label>
+            <input type="text" formControlName="firstname" placeholder="Nhập họ">
+          </div>
+          <div class="form-group">
+            <label>Tên</label>
+            <input type="text" formControlName="lastname" placeholder="Nhập tên">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" formControlName="email" placeholder="example@email.com">
+        </div>
+        
+        <div class="form-group">
+          <label>Số điện thoại</label>
+          <input type="tel" formControlName="phone" placeholder="0123456789">
+        </div>
+        
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input type="password" formControlName="password" placeholder="Tạo mật khẩu">
+        </div>
+        
+        <div class="form-group">
+          <label>Xác nhận mật khẩu</label>
+          <input type="password" formControlName="confirmPassword" placeholder="Xác nhận mật khẩu">
+        </div>
+        
+        <div class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+        
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+          <span *ngIf="!loading()">Tạo tài khoản</span>
+          <span *ngIf="loading()">Đang xử lý...</span>
+        </button>
+        
+        <p class="auth-footer">
+          Đã có tài khoản? <a routerLink="/login">Đăng nhập ngay</a>
+        </p>
+        
+        <p class="terms">
+          Bằng việc tạo tài khoản, bạn đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của chúng tôi
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
