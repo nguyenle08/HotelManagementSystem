@@ -7,6 +7,7 @@
           <nav class="nav">
             <a routerLink="/" class="nav-link">Trang chủ</a>
             @if (isAuthenticated()) {
+              <a routerLink="/my-reservations" class="nav-link">Đặt phòng của tôi</a>
               <span class="nav-link">Xin chào, {{ username() }}</span>
               <button (click)="logout()" class="nav-link btn-logout">Đăng xuất</button>
             } @else {

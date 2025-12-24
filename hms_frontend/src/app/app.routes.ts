@@ -27,6 +27,11 @@ export const routes: Routes = [
       {
         path: 'room-types/:id',
         loadComponent: () => import('./pages/room-detail/room-detail.component').then(m => m.RoomDetailComponent)
+      },
+      {
+        path: 'my-reservations',
+        canActivate: [authGuard],
+        loadComponent: () => import('./pages/my-reservations/my-reservations.component').then(m => m.MyReservationsComponent)
       }
     ]
   },

@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, effect } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TokenService } from '../../../core/services/token.service';
+import { AuthService } from '../../../services/auth.service';
 
 
 @Component({
@@ -11,27 +12,16 @@ import { TokenService } from '../../../core/services/token.service';
   templateUrl: './header.component.html',
   styleUrl: './header.component.css'
 })
-export class HeaderComponent implements OnInit {
-  isAuthenticated = signal(false);
-  username = signal('');
+export class HeaderComponent {
+  isAuthenticated = computed(() => this.authService.currentUser() !== null);
+  username = computed(() => this.authService.currentUser()?.username || '');
 
   constructor(
-    private tokenService: TokenService,
+    private authService: AuthService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.isAuthenticated.set(this.tokenService.isAuthenticated());
-    const user = this.tokenService.getUser();
-    if (user) {
-      this.username.set(user.username);
-    }
-  }
-
   logout(): void {
-    this.tokenService.clearTokens();
-    this.isAuthenticated.set(false);
-    this.username.set('');
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

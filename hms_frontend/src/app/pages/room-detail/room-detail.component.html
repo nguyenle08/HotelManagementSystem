@@ -24,29 +24,54 @@
       <div class="booking-sidebar">
         <div class="price-box">
           <div class="price">
-            <span class="amount">${{ room()!.basePrice }}</span>
-            <span class="per">per night</span>
+            <span class="amount">{{ room()!.basePrice.toLocaleString('vi-VN') }}đ</span>
+            <span class="per">/ đêm</span>
           </div>
-          <p class="tax-info">Taxes and fees included</p>
+          <p class="tax-info">Đã bao gồm thuế và phí</p>
         </div>
         
         <form [formGroup]="bookingForm">
           <div class="form-group">
-            <label>Check-in Date</label>
-            <input type="date" formControlName="checkInDate">
+            <label>Ngày check-in</label>
+            <input type="date" formControlName="checkInDate" class="form-control">
           </div>
           
           <div class="form-group">
-            <label>Check-out Date</label>
-            <input type="date" formControlName="checkOutDate">
+            <label>Ngày check-out</label>
+            <input type="date" formControlName="checkOutDate" class="form-control">
           </div>
+
+          <!-- Price Summary -->
+          @if (numberOfNights() > 0) {
+            <div class="price-summary">
+              <div class="summary-row">
+                <span>{{ room()!.basePrice.toLocaleString('vi-VN') }}đ x {{ numberOfNights() }} đêm</span>
+                <span>{{ (room()!.basePrice * numberOfNights()).toLocaleString('vi-VN') }}đ</span>
+              </div>
+              <div class="summary-total">
+                <strong>Tổng cộng</strong>
+                <strong>{{ totalPrice().toLocaleString('vi-VN') }}đ</strong>
+              </div>
+            </div>
+          }
+
+          <!-- Error Message -->
+          @if (errorMessage()) {
+            <div class="alert alert-danger">
+              {{ errorMessage() }}
+            </div>
+          }
           
           <button 
             type="button" 
             class="btn-book-full"
             (click)="onBook()"
-            [disabled]="bookingForm.invalid">
-            Sign In to Book
+            [disabled]="bookingForm.invalid || loading()">
+            @if (loading()) {
+              <span>Đang xử lý...</span>
+            } @else {
+              <span>Đặt phòng ngay</span>
+            }
           </button>
         </form>
         
