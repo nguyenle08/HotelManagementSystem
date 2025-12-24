@@ -11,15 +11,16 @@ import java.util.List;
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UserController {
-    private final Guest userRepository;
+
+    private final GuestRepository userRepository;
 
     @PostMapping
     public Guest createUser(@RequestBody Guest user) {
-        return GuestRepository.save(user);
+        return userRepository.save(user);
     }
 
     @GetMapping
-    public List<User> getAllUsers() {
+    public List<Guest> getAllUsers() {
         return userRepository.findAll();
     }
 }
