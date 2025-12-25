@@ -1,5 +1,7 @@
 package com.hotel.room.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.room.dto.RoomSearchRequest;
 import com.hotel.room.dto.RoomTypeResponse;
 import com.hotel.room.entity.Room;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,6 +25,18 @@ public class RoomService {
     private final RoomTypeRepository roomTypeRepository;
     private final RoomRepository roomRepository;
     private final RoomAvailabilityRepository availabilityRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    private List<String> parseJsonList(String json) {
+        if (json == null || json.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
 
     public List<RoomTypeResponse> getAllRoomTypes() {
         List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
@@ -35,8 +50,8 @@ public class RoomService {
             response.setMaxGuests(rt.getMaxGuests());
             response.setBedType(rt.getBedType());
             response.setSizeSqm(rt.getSizeSqm());
-            response.setAmenities(rt.getAmenities());
-            response.setImages(rt.getImages());
+            response.setAmenities(parseJsonList(rt.getAmenities()));
+            response.setImages(parseJsonList(rt.getImages()));
             response.setIsActive(rt.getIsActive());
 
             // Count available rooms
@@ -59,8 +74,8 @@ public class RoomService {
         response.setMaxGuests(rt.getMaxGuests());
         response.setBedType(rt.getBedType());
         response.setSizeSqm(rt.getSizeSqm());
-        response.setAmenities(rt.getAmenities());
-        response.setImages(rt.getImages());
+        response.setAmenities(parseJsonList(rt.getAmenities()));
+        response.setImages(parseJsonList(rt.getImages()));
         response.setIsActive(rt.getIsActive());
 
         long totalRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
@@ -98,8 +113,8 @@ public class RoomService {
                     response.setMaxGuests(rt.getMaxGuests());
                     response.setBedType(rt.getBedType());
                     response.setSizeSqm(rt.getSizeSqm());
-                    response.setAmenities(rt.getAmenities());
-                    response.setImages(rt.getImages());
+                    response.setAmenities(parseJsonList(rt.getAmenities()));
+                    response.setImages(parseJsonList(rt.getImages()));
                     response.setIsActive(rt.getIsActive());
                     response.setAvailableRooms((int) availableCount);
 

@@ -32,6 +32,14 @@ spring:
           filters:
             - StripPrefix=1
 
+        # Reservation Service Routes
+        - id: reservation-service
+          uri: lb://reservation-service
+          predicates:
+            - Path=/reservation/**
+          filters:
+            - StripPrefix=1
+
       # CORS Configuration
       globalcors:
         cors-configurations:
