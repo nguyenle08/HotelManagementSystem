@@ -72,4 +72,42 @@ export class MyReservationsComponent implements OnInit {
       day: 'numeric' 
     });
   }
+
+  canCancel(reservation: Reservation): boolean {
+    // Can only cancel if status is PENDING or CONFIRMED
+    if (reservation.status === 'CANCELLED' || 
+        reservation.status === 'CHECKED_IN' || 
+        reservation.status === 'CHECKED_OUT' ||
+        reservation.status === 'NO_SHOW') {
+      return false;
+    }
+
+    // Can cancel PENDING or CONFIRMED reservations
+    return true;
+  }
+
+  cancelReservation(reservation: Reservation): void {
+    if (!confirm(`Bạn có chắc chắn muốn hủy đặt phòng ${reservation.roomTypeName}?`)) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.reservationService.cancelReservation(reservation.reservationId).subscribe({
+      next: (response) => {
+        if (response.success) {
+          // Refresh list
+          this.loadReservations();
+          alert('Hủy đặt phòng thành công!');
+        } else {
+          alert(response.message || 'Không thể hủy đặt phòng');
+        }
+        this.loading.set(false);
+      },
+      error: (error) => {
+        const errorMsg = error.error?.message || 'Đã xảy ra lỗi khi hủy đặt phòng';
+        alert(errorMsg);
+        this.loading.set(false);
+      }
+    });
+  }
 }

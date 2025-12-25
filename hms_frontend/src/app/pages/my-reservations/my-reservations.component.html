@@ -72,8 +72,13 @@
                     <i class="icon-eye"></i> View Details
                   </button>
                   
+                  @if (canCancel(reservation)) {
+                    <button class="btn-outline btn-cancel" (click)="cancelReservation(reservation)">
+                      <i class="icon-x"></i> Hủy đặt phòng
+                    </button>
+                  }
+                  
                   @if (reservation.status === 'PENDING') {
-                    <button class="btn-outline btn-cancel">Cancel Booking</button>
                     <button class="btn-pay">Pay Now</button>
                   }
                 </div>

@@ -50,4 +50,25 @@ export class ReservationService {
       })
     );
   }
+
+  cancelReservation(reservationId: string): Observable<ApiResponse<void>> {
+    this.loading.set(true);
+    this.error.set(null);
+    
+    return this.http.delete<ApiResponse<void>>(`${this.apiUrl}/${reservationId}`).pipe(
+      tap({
+        next: () => {
+          // Remove from local state
+          this.reservations.update(reservations => 
+            reservations.filter(r => r.reservationId !== reservationId)
+          );
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.error.set(err.error?.message || 'Có lỗi xảy ra khi hủy đặt phòng');
+        }
+      })
+    );
+  }
 }

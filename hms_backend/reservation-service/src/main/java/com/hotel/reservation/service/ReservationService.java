@@ -74,6 +74,30 @@ public class ReservationService {
                 .collect(Collectors.toList());
     }
 
+    public void cancelReservation(String reservationId, String userId) {
+        Reservation reservation = reservationRepository.findById(reservationId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đặt phòng"));
+
+        // Check if user owns this reservation
+        if (!reservation.getUserId().equals(userId)) {
+            throw new RuntimeException("Bạn không có quyền hủy đặt phòng này");
+        }
+
+        // Check if reservation can be cancelled
+        if (reservation.getStatus() == ReservationStatus.CANCELLED) {
+            throw new RuntimeException("Đặt phòng đã được hủy trước đó");
+        }
+
+        if (reservation.getStatus() == ReservationStatus.CHECKED_IN || 
+            reservation.getStatus() == ReservationStatus.CHECKED_OUT) {
+            throw new RuntimeException("Không thể hủy đặt phòng đã check-in hoặc check-out");
+        }
+
+        // Update status to CANCELLED
+        reservation.setStatus(ReservationStatus.CANCELLED);
+        reservationRepository.save(reservation);
+    }
+
     private void validateDates(LocalDate checkIn, LocalDate checkOut) {
         LocalDate today = LocalDate.now();
         

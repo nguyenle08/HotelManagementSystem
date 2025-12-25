@@ -21,7 +21,7 @@ export interface Reservation {
   totalAmount: number;
   pricePerNight: number;
   specialRequests?: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED';
+  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'NO_SHOW';
   createdAt: string;
 }
 
