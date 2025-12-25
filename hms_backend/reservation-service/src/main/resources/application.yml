@@ -2,18 +2,15 @@ spring:
   application:
     name: reservation-service
   datasource:
-    url: jdbc:h2:mem:reservationdb
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:mysql://localhost:3306/reservation_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 1607
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.MySQLDialect
     hibernate:
       ddl-auto: update
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    show-sql: true
 
 server:
   port: 8084
@@ -26,7 +23,7 @@ eureka:
     prefer-ip-address: true
 
 jwt:
-  secret: 5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
   expiration: 86400000
 
 logging:
