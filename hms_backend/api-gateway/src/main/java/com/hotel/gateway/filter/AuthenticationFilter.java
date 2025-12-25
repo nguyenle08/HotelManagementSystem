@@ -27,6 +27,11 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
 
+            // Skip OPTIONS requests (CORS preflight)
+            if (request.getMethod().name().equals("OPTIONS")) {
+                return chain.filter(exchange);
+            }
+
             // Skip auth for public endpoints
             if (isPublicEndpoint(request.getURI().getPath())) {
                 return chain.filter(exchange);
@@ -75,9 +80,9 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     private boolean isPublicEndpoint(String path) {
         // Public endpoints that don't require authentication
-        return path.contains("/auth/api/auth/login") ||
-               path.contains("/auth/api/auth/register") ||
-               path.contains("/api/rooms") && !path.contains("/admin") ||
+        return path.contains("/api/auth/login") ||
+               path.contains("/api/auth/register") ||
+               (path.contains("/api/rooms") && !path.contains("/admin")) ||
                path.contains("/actuator") ||
                path.contains("/eureka");
     }
