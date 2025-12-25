@@ -1,0 +1,20 @@
+<header class="header">
+      <div class="container">
+        <div class="header-content">
+          <a routerLink="/" class="logo">
+            <h1>Hotel Management</h1>
+          </a>
+          <nav class="nav">
+            <a routerLink="/" class="nav-link">Trang chủ</a>
+            @if (isAuthenticated()) {
+              <a routerLink="/my-reservations" class="nav-link">Đặt phòng của tôi</a>
+              <span class="nav-link">Xin chào, {{ username() }}</span>
+              <button (click)="logout()" class="nav-link btn-logout">Đăng xuất</button>
+            } @else {
+              <a routerLink="/login" class="nav-link">Đăng nhập</a>
+              <a routerLink="/register" class="nav-link btn-register">Đăng ký</a>
+            }
+          </nav>
+        </div>
+      </div>
+    </header>

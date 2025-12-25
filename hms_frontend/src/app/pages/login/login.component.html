@@ -1,0 +1,49 @@
+<div class="auth-container">
+  <div class="auth-left">
+    <div class="auth-left-content">
+      <h1>Chào Mừng Trở Lại</h1>
+      <p>Đăng nhập để truy cập tài khoản và quản lý đặt phòng của bạn</p>
+    </div>
+  </div>
+  
+  <div class="auth-right">
+    <div class="auth-form-container">
+      <div class="logo">
+        <h1 style="color: #2c5282; margin: 0;">🏨 Hotel MS</h1>
+      </div>
+      
+      <h2>Đăng Nhập</h2>
+      <p class="subtitle">Nhập thông tin đăng nhập để tiếp tục</p>
+      
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Tên đăng nhập</label>
+          <input 
+            type="text" 
+            formControlName="username" 
+            placeholder="Nhập tên đăng nhập">
+        </div>
+        
+        <div class="form-group">
+          <label>Mật khẩu</label>
+          <input type="password" formControlName="password" placeholder="Nhập mật khẩu">
+        </div>
+        
+        <div class="error-message" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+        
+        <button type="submit" class="btn-primary" [disabled]="loading()">
+          <span *ngIf="!loading()">Đăng nhập</span>
+          <span *ngIf="loading()">Đang xử lý...</span>
+        </button>
+        
+        <p class="auth-footer">
+          Chưa có tài khoản? <a routerLink="/register">Tạo tài khoản ngay</a>
+        </p>
+        
+        <p class="privacy">
+          Được bảo vệ bởi các biện pháp bảo mật tiêu chuẩn ngành
+        </p>
+      </form>
+    </div>
+  </div>
+</div>
