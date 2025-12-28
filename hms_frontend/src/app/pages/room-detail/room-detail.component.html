@@ -1,0 +1,162 @@
+<div class="room-detail-page">
+  <div class="container" *ngIf="room()">
+    <a routerLink="/" class="back-link">← Back to Rooms</a>
+    
+    <div class="room-detail-container">
+      <!-- Left: Images -->
+      <div class="room-images">
+        <div class="main-image">
+          <img [src]="room()!.images[selectedImage()]" [alt]="room()!.name">
+          <button class="nav-btn prev" (click)="prevImage()">‹</button>
+          <button class="nav-btn next" (click)="nextImage()">›</button>
+        </div>
+        
+        <div class="thumbnail-gallery">
+          <img 
+            *ngFor="let img of room()!.images; let i = index" 
+            [src]="img" 
+            [class.active]="i === selectedImage()"
+            (click)="selectedImage.set(i)">
+        </div>
+      </div>
+      
+      <!-- Right: Booking Form -->
+      <div class="booking-sidebar">
+        <div class="price-box">
+          <div class="price">
+            <span class="amount">{{ room()!.basePrice.toLocaleString('vi-VN') }}đ</span>
+            <span class="per">/ đêm</span>
+          </div>
+          <p class="tax-info">Đã bao gồm thuế và phí</p>
+        </div>
+        
+        <form [formGroup]="bookingForm">
+          <div class="form-group">
+            <label>Ngày check-in</label>
+            <input type="date" formControlName="checkInDate" class="form-control">
+          </div>
+          
+          <div class="form-group">
+            <label>Ngày check-out</label>
+            <input type="date" formControlName="checkOutDate" class="form-control">
+          </div>
+
+          <!-- Price Summary -->
+          @if (numberOfNights() > 0) {
+            <div class="price-summary">
+              <div class="summary-row">
+                <span>{{ room()!.basePrice.toLocaleString('vi-VN') }}đ x {{ numberOfNights() }} đêm</span>
+                <span>{{ (room()!.basePrice * numberOfNights()).toLocaleString('vi-VN') }}đ</span>
+              </div>
+              <div class="summary-total">
+                <strong>Tổng cộng</strong>
+                <strong>{{ totalPrice().toLocaleString('vi-VN') }}đ</strong>
+              </div>
+            </div>
+          }
+
+          <!-- Error Message -->
+          @if (errorMessage()) {
+            <div class="alert alert-danger">
+              {{ errorMessage() }}
+            </div>
+          }
+          
+          <button 
+            type="button" 
+            class="btn-book-full"
+            (click)="onBook()"
+            [disabled]="bookingForm.invalid || loading()">
+            @if (loading()) {
+              <span>Đang xử lý...</span>
+            } @else {
+              <span>Đặt phòng ngay</span>
+            }
+          </button>
+        </form>
+        
+        <div class="benefits">
+          <div class="benefit-item">
+            <i class="icon-check"></i>
+            <div>
+              <strong>Free Cancellation</strong>
+              <p>Cancel up to 24 hours before check-in</p>
+            </div>
+          </div>
+          
+          <div class="benefit-item">
+            <i class="icon-support"></i>
+            <div>
+              <strong>24/7 Support</strong>
+              <p>We're here to help anytime</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Room Details -->
+    <div class="room-info-section">
+      <h1>{{ room()!.name }}</h1>
+      
+      <div class="room-meta">
+        <span><i class="icon-users"></i> Max {{ room()!.maxGuests }} guest</span>
+        <span><i class="icon-bed"></i> {{ room()!.availableRooms }} rooms available</span>
+        <span><i class="icon-price"></i> ${{ room()!.basePrice }} / night</span>
+      </div>
+      
+      <p class="description">{{ room()!.description }}</p>
+      
+      <!-- Room Amenities -->
+      <div class="section">
+        <h2>Room Amenities</h2>
+        <div class="amenities-grid">
+          <div *ngFor="let amenity of room()!.amenities" class="amenity-item">
+            <i class="icon-check"></i>
+            <span>{{ amenity }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Room Features -->
+      <div class="section">
+        <h2>Room Features</h2>
+        <div class="features-grid">
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>City View</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Soundproof Windows</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Blackout Curtains</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Work Desk</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Seating Area</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>King Size Bed</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Premium Mattress</span>
+          </div>
+          <div class="feature-item">
+            <i class="icon-feature"></i>
+            <span>Hypoallergenic Pillows</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</div>

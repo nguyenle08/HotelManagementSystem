@@ -1,0 +1,92 @@
+<div class="my-reservations-page">
+  <div class="container">
+    <header class="page-header">
+      <h1>My Reservations</h1>
+      <p>View and manage all your hotel bookings</p>
+    </header>
+
+    @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your reservations...</p>
+    </div>
+    } @if (errorMessage()) {
+    <div class="alert alert-danger">{{ errorMessage() }}</div>
+    } @if (!loading() && reservations().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <h3>No bookings found</h3>
+      <p>You haven't made any reservations yet. Start exploring our rooms!</p>
+      <a routerLink="/" class="btn btn-primary">Browse Rooms</a>
+    </div>
+    } @if (!loading() && reservations().length > 0) {
+    <div class="reservations-list">
+      @for (reservation of reservations(); track reservation.reservationId) {
+      <div class="reservation-card">
+        @if (reservation.roomImage) {
+        <div class="reservation-image">
+          <img [src]="reservation.roomImage" [alt]="reservation.roomTypeName" />
+        </div>
+        }
+
+        <div class="reservation-content">
+          <div class="card-header">
+            <div class="title-area">
+              <h3>{{ reservation.roomTypeName }}</h3>
+              <span
+                [class]="'status-badge ' + getStatusClass(reservation.status)"
+              >
+                {{ getStatusText(reservation.status) }}
+              </span>
+            </div>
+            <div class="price-area">
+              <span class="price-label">Total Price</span>
+              <span class="total-price">${{ reservation.totalAmount }}</span>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <label><i class="icon-calendar"></i> Check-in</label>
+                <span>{{ formatDate(reservation.checkInDate) }}</span>
+              </div>
+              <div class="info-item">
+                <label><i class="icon-calendar"></i> Check-out</label>
+                <span>{{ formatDate(reservation.checkOutDate) }}</span>
+              </div>
+              <div class="info-item">
+                <label><i class="icon-clock"></i> Duration</label>
+                <span
+                  >{{
+                    calculateNights(
+                      reservation.checkInDate,
+                      reservation.checkOutDate
+                    )
+                  }}
+                  nights</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="actions">
+              <button
+                class="btn-outline btn-view"
+                [routerLink]="[
+                  '/reservation-detail',
+                  reservation.reservationId
+                ]"
+              >
+                <i class="icon-eye"></i> View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>

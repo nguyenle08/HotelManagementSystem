@@ -1,0 +1,53 @@
+<div class="home-page">
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Our Rooms</h1>
+      <p>Discover comfort and luxury in every stay</p>
+    </div>
+  </section>
+  
+  <!-- Rooms Grid -->
+  <section class="rooms-section">
+    <div class="container">
+      <div *ngIf="loading()" class="loading">Đang tải...</div>
+      <div *ngIf="errorMessage()" class="error">{{ errorMessage() }}</div>
+      
+      <div class="rooms-grid">
+        <div *ngFor="let room of rooms()" class="room-card">
+          <div class="room-image">
+            <img [src]="room.images[0]" [alt]="room.name">
+            <span class="badge" [class.available]="room.availableRooms > 0">
+              {{ room.availableRooms > 0 ? 'Available' : 'Fully Booked' }}
+            </span>
+          </div>
+          
+          <div class="room-content">
+            <h3>{{ room.name }}</h3>
+            <p class="room-description">{{ room.description }}</p>
+            
+            <div class="room-info">
+              <span><i class="icon-users"></i> Max {{ room.maxGuests }} guests</span>
+              <span><i class="icon-bed"></i> {{ room.availableRooms }} rooms left</span>
+            </div>
+            
+            <div class="room-amenities">
+              <span *ngFor="let amenity of room.amenities.slice(0, 4)">{{ amenity }}</span>
+              <span *ngIf="room.amenities.length > 4">+{{ room.amenities.length - 4 }} more</span>
+            </div>
+            
+            <div class="room-footer">
+              <div class="price">
+                <span class="amount">${{ room.basePrice }}</span>
+                <span class="per">/night</span>
+              </div>
+              <button class="btn-book" (click)="viewRoomDetail(room.roomTypeId)">
+                Book Now
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

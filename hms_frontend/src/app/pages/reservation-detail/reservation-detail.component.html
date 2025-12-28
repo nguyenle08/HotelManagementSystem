@@ -1,0 +1,152 @@
+<div *ngIf="service.loading()">Loading...</div>
+
+<div *ngIf="service.error()" class="error">
+  {{ service.error() }}
+</div>
+
+<div *ngIf="service.detail() as d" class="reservation-detail">
+  <a (click)="goBack()" class="breadcrumb"> ← Back to My Bookings </a>
+  <div class="reservation-header">
+    <div>
+      <span class="label">Booking Number</span>
+      <h1>{{ d.reservationCode }}</h1>
+
+      <div class="status-group">
+        <span class="badge status pending">
+          <i class="fa fa-clock"></i>
+          {{ d.status }}
+        </span>
+
+        <span class="badge payment unpaid">
+          <i class="fa fa-credit-card"></i>
+          {{ d.paymentStatus || "UNPAID" }}
+        </span>
+      </div>
+    </div>
+
+    <div class="total">
+      <span>Total Amount </span>
+      <strong>{{ d.totalAmount | currency : "USD" }}</strong>
+    </div>
+  </div>
+
+  <div class="room-image" *ngIf="d.roomImage">
+    <img [src]="d.roomImage" alt="Room image" />
+  </div>
+
+  <h2 class="room-name">{{ d.roomTypeName }}</h2>
+
+  <div class="info-grid">
+    <div class="info-card">
+      <h3><i class="fa fa-calendar"></i> Booking Dates</h3>
+
+      <div class="row">
+        <span>Check-in</span>
+        <strong>{{ d.checkInDate | date : "EEE, MMM d, y" }}</strong>
+      </div>
+
+      <div class="row">
+        <span>Check-out</span>
+        <strong>{{ d.checkOutDate | date : "EEE, MMM d, y" }}</strong>
+      </div>
+
+      <div class="row highlight">
+        <span>Total Nights</span>
+        <strong>{{ totalNights() }} nights</strong>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3><i class="fa fa-user"></i> Guest Information</h3>
+
+      <p>
+        <strong>Name</strong><br />
+        {{ d.guestFullName }}
+      </p>
+
+      <p>
+        <strong>Email</strong><br />
+        {{ d.guestEmail }}
+      </p>
+
+      <p>
+        <strong>Phone</strong><br />
+        {{ d.guestPhone || "N/A" }}
+      </p>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3><i class="fa fa-receipt"></i> Price Breakdown</h3>
+
+    <div class="row">
+      <span>
+        {{ d.pricePerNight | currency : "USD" }}
+        × {{ totalNights() }} nights
+      </span>
+      <strong>
+        {{ d.pricePerNight * totalNights() | currency : "USD" }}
+      </strong>
+    </div>
+
+    <div class="row">
+      <span>Taxes & Fees</span>
+      <strong>{{ taxes() | currency : "USD" }}</strong>
+    </div>
+
+    <div class="row total">
+      <span>Total Amount</span>
+      <strong>{{ d.totalAmount | currency : "USD" }}</strong>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <h3><i class="fa fa-info-circle"></i> Booking Information</h3>
+
+    <div class="row">
+      <span>Booked On</span>
+      <strong>{{ d.createdAt | date }}</strong>
+    </div>
+
+    <div class="row">
+      <span>Booking Status</span>
+      <span class="badge pending">{{ d.status }}</span>
+    </div>
+
+    <div class="row">
+      <span>Payment Status</span>
+      <span class="badge pending">{{ d.paymentStatus }}</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button
+      class="btn-cancel"
+      [disabled]="!canCancel()"
+      (click)="cancelBooking()"
+    >
+      <i class="fa fa-times"></i>
+      Cancel Booking
+    </button>
+
+    <div class="lock-box" *ngIf="!canCancel()">
+      <i class="fa fa-lock"></i>
+      <div>
+        <strong>Editing Disabled</strong>
+        <p>
+          Confirmed bookings cannot be edited. Please contact support for
+          changes.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card policy">
+    <h3>Cancellation Policy</h3>
+    <ul>
+      <li>Free cancellation up to 24 hours before check-in</li>
+      <li>No refund within 24 hours of check-in</li>
+      <li>No refund for no-shows</li>
+    </ul>
+  </div>
+</div>
