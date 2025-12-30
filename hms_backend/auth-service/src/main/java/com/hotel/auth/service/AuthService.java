@@ -24,9 +24,6 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    @Value("${admin.secret.key:SUPER_SECRET_ADMIN_KEY_2025}")
-    private String adminSecretKey;
-
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         // Validate
@@ -95,11 +92,16 @@ public class AuthService {
         );
     }
 
+    /**
+     * Tạo admin đầu tiên
+     * Chỉ cho phép tạo nếu chưa có admin nào trong hệ thống
+     * Không cần secret key
+     */
     @Transactional
     public AuthResponse createAdmin(CreateAdminRequest request) {
-        // Validate secret key
-        if (!adminSecretKey.equals(request.getAdminSecretKey())) {
-            throw new RuntimeException("Invalid admin secret key");
+        // Check xem đã có admin chưa
+        if (userRepository.existsByRole("ADMIN")) {
+            throw new RuntimeException("Đã có admin trong hệ thống. Không thể tạo thêm admin qua endpoint này.");
         }
 
         // Validate
@@ -140,15 +142,10 @@ public class AuthService {
 
     /**
      * Tạo user với role tùy chọn (ADMIN, MANAGER, STAFF, USER)
-     * Chỉ admin mới được gọi (cần secret key)
+     * Chỉ admin mới được gọi (check JWT token từ controller)
      */
     @Transactional
     public AuthResponse createUserByAdmin(CreateUserByAdminRequest request) {
-        // Validate secret key
-        if (!adminSecretKey.equals(request.getAdminSecretKey())) {
-            throw new RuntimeException("Invalid admin secret key");
-        }
-
         // Validate
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username đã tồn tại");

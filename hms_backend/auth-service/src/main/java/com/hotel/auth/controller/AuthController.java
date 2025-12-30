@@ -41,8 +41,9 @@ public class AuthController {
     }
 
     /**
-     * Endpoint đặc biệt để tạo admin đầu tiên
-     * Sau khi có admin, nên disable endpoint này
+     * Endpoint để tạo admin đầu tiên
+     * Chỉ cho phép tạo nếu chưa có admin nào trong hệ thống
+     * Không cần secret key, tự động reject nếu đã có admin
      */
     @PostMapping("/create-admin")
     public ResponseEntity<ApiResponse> createAdmin(@RequestBody CreateAdminRequest request) {
@@ -58,6 +59,8 @@ public class AuthController {
     /**
      * Endpoint để admin tạo user với role bất kỳ
      * Admin có thể tạo: ADMIN, MANAGER, STAFF, USER
+     * TODO: Thêm @PreAuthorize("hasRole('ADMIN')") hoặc check JWT token manually
+     * Hiện tại SecurityConfig permitAll /api/auth/** nên cần thêm logic check role
      */
     @PostMapping("/admin/create-user")
     public ResponseEntity<ApiResponse> createUserByAdmin(@RequestBody CreateUserByAdminRequest request) {
