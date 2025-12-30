@@ -152,7 +152,9 @@ export class RoomDetailComponent implements OnInit {
     const request: CreateReservationRequest = {
       roomTypeId: currentRoom.roomTypeId,
       checkInDate: this.bookingForm.value.checkInDate!,
-      checkOutDate: this.bookingForm.value.checkOutDate!
+      checkOutDate: this.bookingForm.value.checkOutDate!,
+      numAdults: 1,     //thêm
+      numChildren: 0    //thêm
     };
 
     this.loading.set(true);

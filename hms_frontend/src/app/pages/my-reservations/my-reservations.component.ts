@@ -9,7 +9,7 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './my-reservations.component.html',
-  styleUrls: ['./my-reservations.component.css']
+  styleUrls: ['./my-reservations.component.css'],
 })
 export class MyReservationsComponent implements OnInit {
   reservations = signal<Reservation[]>([]);
@@ -29,32 +29,42 @@ export class MyReservationsComponent implements OnInit {
         if (response.success) {
           this.reservations.set(response.data);
         } else {
-          this.errorMessage.set(response.message || 'Không thể tải danh sách đặt phòng');
+          this.errorMessage.set(
+            response.message || 'Không thể tải danh sách đặt phòng'
+          );
         }
         this.loading.set(false);
       },
       error: (error) => {
         this.errorMessage.set('Đã xảy ra lỗi khi tải danh sách đặt phòng');
         this.loading.set(false);
-      }
+      },
     });
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'PENDING': return 'status-pending';
-      case 'CONFIRMED': return 'status-confirmed';
-      case 'CANCELLED': return 'status-cancelled';
-      default: return '';
+      case 'PENDING':
+        return 'status-pending';
+      case 'CONFIRMED':
+        return 'status-confirmed';
+      case 'CANCELLED':
+        return 'status-cancelled';
+      default:
+        return '';
     }
   }
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'PENDING': return 'Chờ xác nhận';
-      case 'CONFIRMED': return 'Đã xác nhận';
-      case 'CANCELLED': return 'Đã hủy';
-      default: return status;
+      case 'PENDING':
+        return 'Chờ xác nhận';
+      case 'CONFIRMED':
+        return 'Đã xác nhận';
+      case 'CANCELLED':
+        return 'Đã hủy';
+      default:
+        return status;
     }
   }
 
@@ -66,26 +76,26 @@ export class MyReservationsComponent implements OnInit {
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
+    return date.toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
     });
   }
 
   canCancel(reservation: Reservation): boolean {
     // Can only cancel if status is PENDING or CONFIRMED
-    if (reservation.status === 'CANCELLED' || 
-        reservation.status === 'CHECKED_IN' || 
-        reservation.status === 'CHECKED_OUT' ||
-        reservation.status === 'NO_SHOW') {
+    if (
+      reservation.status === 'CANCELLED' ||
+      reservation.status === 'CHECKED_IN' ||
+      reservation.status === 'CHECKED_OUT' ||
+      reservation.status === 'NO_SHOW'
+    ) {
       return false;
     }
-
-    // Can cancel PENDING or CONFIRMED reservations
     return true;
   }
-
+  /*
   cancelReservation(reservation: Reservation): void {
     if (!confirm(`Bạn có chắc chắn muốn hủy đặt phòng ${reservation.roomTypeName}?`)) {
       return;
@@ -109,5 +119,5 @@ export class MyReservationsComponent implements OnInit {
         this.loading.set(false);
       }
     });
-  }
+  }*/
 }

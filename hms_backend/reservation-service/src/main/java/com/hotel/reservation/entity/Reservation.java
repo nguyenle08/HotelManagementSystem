@@ -73,4 +73,18 @@ public class Reservation {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+  @Column(name = "guest_full_name", nullable = false)
+  private String guestFullName;
+
+  @Column(name = "guest_email", nullable = false)
+  private String guestEmail;
+
+  @Column(name = "guest_phone", nullable = false)
+  private String guestPhone;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "payment_status", nullable = false, length = 20)
+  private PaymentStatus paymentStatus = PaymentStatus.PENDING;
+
 }

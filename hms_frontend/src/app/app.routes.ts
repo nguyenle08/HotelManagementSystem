@@ -14,26 +14,45 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+        loadComponent: () =>
+          import('./pages/home/home.component').then((m) => m.HomeComponent),
       },
       {
         path: 'login',
-        loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent)
+        loadComponent: () =>
+          import('./pages/login/login.component').then((m) => m.LoginComponent),
       },
       {
         path: 'register',
-        loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent)
+        loadComponent: () =>
+          import('./pages/register/register.component').then(
+            (m) => m.RegisterComponent
+          ),
       },
       {
         path: 'room-types/:id',
-        loadComponent: () => import('./pages/room-detail/room-detail.component').then(m => m.RoomDetailComponent)
+        loadComponent: () =>
+          import('./pages/room-detail/room-detail.component').then(
+            (m) => m.RoomDetailComponent
+          ),
       },
       {
         path: 'my-reservations',
         canActivate: [authGuard],
-        loadComponent: () => import('./pages/my-reservations/my-reservations.component').then(m => m.MyReservationsComponent)
-      }
-    ]
+        loadComponent: () =>
+          import('./pages/my-reservations/my-reservations.component').then(
+            (m) => m.MyReservationsComponent
+          ),
+      },
+      {
+        path: 'reservation-detail/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './pages/reservation-detail/reservation-detail.component'
+          ).then((m) => m.ReservationDetailComponent),
+      },
+    ],
   },
   // Admin routes
   {
@@ -43,9 +62,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/admin/admin-dashboard.component').then(m => m.AdminDashboardComponent)
-      }
-    ]
+        loadComponent: () =>
+          import('./pages/admin/admin-dashboard.component').then(
+            (m) => m.AdminDashboardComponent
+          ),
+      },
+    ],
   },
   // Staff routes
   {
@@ -55,9 +77,12 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/staff/staff-dashboard.component').then(m => m.StaffDashboardComponent)
-      }
-    ]
+        loadComponent: () =>
+          import('./pages/staff/staff-dashboard.component').then(
+            (m) => m.StaffDashboardComponent
+          ),
+      },
+    ],
   },
   // Manager routes
   {
@@ -67,14 +92,16 @@ export const routes: Routes = [
     children: [
       {
         path: '',
-        loadComponent: () => import('./pages/manager/manager-dashboard.component').then(m => m.ManagerDashboardComponent)
-      }
-    ]
+        loadComponent: () =>
+          import('./pages/manager/manager-dashboard.component').then(
+            (m) => m.ManagerDashboardComponent
+          ),
+      },
+    ],
   },
   // Fallback route
   {
     path: '**',
-    redirectTo: ''
-  }
+    redirectTo: '',
+  },
 ];
-
