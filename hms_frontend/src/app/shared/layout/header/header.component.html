@@ -7,9 +7,45 @@
           <nav class="nav">
             <a routerLink="/" class="nav-link">Trang chủ</a>
             @if (isAuthenticated()) {
-              <a routerLink="/my-reservations" class="nav-link">Đặt phòng của tôi</a>
-              <span class="nav-link">Xin chào, {{ username() }}</span>
-              <button (click)="logout()" class="nav-link btn-logout">Đăng xuất</button>
+              <div class="user-menu-wrapper">
+                <div class="user-menu" (click)="toggleUserDropdown()">
+                  <span class="user-name">{{ username() }}</span>
+                  <i class="fa-solid fa-chevron-down" [class.rotate]="showUserDropdown"></i>
+                </div>
+
+                <div class="dropdown-menu" *ngIf="showUserDropdown">
+                  <div class="dropdown-header">
+                    <p class="dropdown-name">{{ username() }}</p>
+                    <p class="dropdown-role">{{ userRole() }}</p>
+                  </div>
+
+                  <div class="dropdown-divider"></div>
+
+                  @if (userRole() === 'ADMIN' || userRole() === 'STAFF' || userRole() === 'MANAGER') {
+                    <a class="dropdown-item" (click)="goToDashboard()">
+                      <i class="fa-solid fa-gauge"></i>
+                      <span>Dashboard {{ userRole() }}</span>
+                    </a>
+                  } @else {
+                    <a class="dropdown-item" routerLink="/my-reservations" (click)="showUserDropdown = false">
+                      <i class="fa-solid fa-calendar-check"></i>
+                      <span>Đặt phòng của tôi</span>
+                    </a>
+                  }
+
+                  <a class="dropdown-item" (click)="goToProfile()">
+                    <i class="fa-solid fa-user"></i>
+                    <span>Thông tin cá nhân</span>
+                  </a>
+
+                  <div class="dropdown-divider"></div>
+
+                  <a class="dropdown-item logout" (click)="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Đăng xuất</span>
+                  </a>
+                </div>
+              </div>
             } @else {
               <a routerLink="/login" class="nav-link">Đăng nhập</a>
               <a routerLink="/register" class="nav-link btn-register">Đăng ký</a>
@@ -17,4 +53,6 @@
           </nav>
         </div>
       </div>
+
+      <div class="dropdown-backdrop" *ngIf="showUserDropdown" (click)="showUserDropdown = false"></div>
     </header>

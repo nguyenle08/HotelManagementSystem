@@ -58,20 +58,8 @@ export class AuthService {
   }
 
   private redirectByRole(role: string): void {
-    switch (role) {
-      case 'ADMIN':
-        this.router.navigate(['/admin']);
-        break;
-      case 'STAFF':
-        this.router.navigate(['/staff']);
-        break;
-      case 'MANAGER':
-        this.router.navigate(['/manager']);
-        break;
-      default:
-        this.router.navigate(['/']);
-        break;
-    }
+    // Luôn redirect về trang chủ sau khi login, bất kể role
+    this.router.navigate(['/']);
   }
 
   isAuthenticated(): boolean {

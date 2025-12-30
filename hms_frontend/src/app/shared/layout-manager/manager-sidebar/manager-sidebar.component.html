@@ -1,1 +1,66 @@
-<p>manager-sidebar works!</p>
+<div class="sidebar-container" [class.collapsed]="isCollapsed">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <i class="fa-solid fa-user-shield"></i>
+    </div>
+    <span class="logo-text" *ngIf="!isCollapsed">Manager Panel</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul>
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <a routerLink="/manager/dashboard" [title]="isCollapsed ? 'Dashboard' : ''">
+          <i class="fa-solid fa-chart-line"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/manager/staff" [title]="isCollapsed ? 'Quản lý nhân viên' : ''">
+          <i class="fa-solid fa-user-tie"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý nhân viên</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/manager/rooms" [title]="isCollapsed ? 'Quản lý phòng' : ''">
+          <i class="fa-solid fa-bed"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/manager/reservations" [title]="isCollapsed ? 'Quản lý đặt phòng' : ''">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý đặt phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/manager/revenue" [title]="isCollapsed ? 'Báo cáo doanh thu' : ''">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Báo cáo doanh thu</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/manager/reports" [title]="isCollapsed ? 'Thống kê & Báo cáo' : ''">
+          <i class="fa-solid fa-file-chart-line"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Thống kê & Báo cáo</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="fa-solid fa-user-circle"></i>
+      </div>
+      <div class="user-details">
+        <span class="user-name">Manager User</span>
+        <span class="user-email">manager&#64;hotel.com</span>
+      </div>
+    </div>
+  </div>
+</div>

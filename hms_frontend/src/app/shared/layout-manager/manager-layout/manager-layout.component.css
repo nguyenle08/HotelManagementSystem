@@ -1,0 +1,33 @@
+.manager-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.manager-sidebar {
+  flex-shrink: 0;
+}
+
+.manager-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.manager-layout-container.sidebar-collapsed .manager-main-content {
+  margin-left: 70px;
+}
+
+.manager-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.manager-page-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

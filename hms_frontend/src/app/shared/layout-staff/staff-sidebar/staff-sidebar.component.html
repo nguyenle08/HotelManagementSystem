@@ -1,1 +1,59 @@
-<p>staff-sidebar works!</p>
+<div class="sidebar-container" [class.collapsed]="isCollapsed">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <i class="fa-solid fa-user-tie"></i>
+    </div>
+    <span class="logo-text" *ngIf="!isCollapsed">Staff Panel</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul>
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <a routerLink="/staff/dashboard" [title]="isCollapsed ? 'Dashboard' : ''">
+          <i class="fa-solid fa-chart-line"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/staff/reservations" [title]="isCollapsed ? 'Quản lý đặt phòng' : ''">
+          <i class="fa-solid fa-calendar-check"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý đặt phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/staff/rooms" [title]="isCollapsed ? 'Quản lý phòng' : ''">
+          <i class="fa-solid fa-bed"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/staff/checkin" [title]="isCollapsed ? 'Check-in / Check-out' : ''">
+          <i class="fa-solid fa-clipboard-check"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Check-in / Check-out</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/staff/services" [title]="isCollapsed ? 'Dịch vụ khách hàng' : ''">
+          <i class="fa-solid fa-concierge-bell"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Dịch vụ khách hàng</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="user-info">
+      <div class="user-avatar">
+        <i class="fa-solid fa-user-circle"></i>
+      </div>
+      <div class="user-details">
+        <span class="user-name">Staff User</span>
+        <span class="user-email">staff&#64;hotel.com</span>
+      </div>
+    </div>
+  </div>
+</div>

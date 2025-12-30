@@ -1,0 +1,33 @@
+.staff-layout-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f9fafb;
+}
+
+.staff-sidebar {
+  flex-shrink: 0;
+}
+
+.staff-main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 250px;
+  transition: margin-left 0.3s ease;
+}
+
+.staff-layout-container.sidebar-collapsed .staff-main-content {
+  margin-left: 70px;
+}
+
+.staff-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.staff-page-content {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+}

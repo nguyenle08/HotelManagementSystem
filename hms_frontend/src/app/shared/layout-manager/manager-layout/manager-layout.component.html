@@ -1,1 +1,17 @@
-<p>manager-layout works!</p>
+<div class="manager-layout-container" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <app-manager-sidebar 
+    class="manager-sidebar" 
+    [isCollapsed]="isSidebarCollapsed">
+  </app-manager-sidebar>
+
+  <div class="manager-main-content">
+    <app-manager-header 
+      class="manager-header"
+      (toggleSidebar)="toggleSidebar()">
+    </app-manager-header>
+
+    <main class="manager-page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

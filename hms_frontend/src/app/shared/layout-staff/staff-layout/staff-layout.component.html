@@ -1,1 +1,17 @@
-<p>staff-layout works!</p>
+<div class="staff-layout-container" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <app-staff-sidebar 
+    class="staff-sidebar" 
+    [isCollapsed]="isSidebarCollapsed">
+  </app-staff-sidebar>
+
+  <div class="staff-main-content">
+    <app-staff-header 
+      class="staff-header"
+      (toggleSidebar)="toggleSidebar()">
+    </app-staff-header>
+
+    <main class="staff-page-content">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

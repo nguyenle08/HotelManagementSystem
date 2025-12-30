@@ -1,1 +1,35 @@
-<p>admin-sidebar works!</p>
+<div class="sidebar-container" [class.collapsed]="isCollapsed">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <i class="fa-solid fa-hotel"></i>
+    </div>
+    <span class="logo-text" *ngIf="!isCollapsed">Hotel Manager</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <ul>
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <a routerLink="/admin/dashboard" [title]="isCollapsed ? 'Dashboard' : ''">
+          <i class="fa-solid fa-chart-line"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Dashboard</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/admin/users" [title]="isCollapsed ? 'Quản lý người dùng' : ''">
+          <i class="fa-solid fa-users"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý người dùng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a routerLink="/admin/rooms" [title]="isCollapsed ? 'Quản lý phòng' : ''">
+          <i class="fa-solid fa-bed"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý phòng</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  
+</div>

@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
 import { PublicLayoutComponent } from './shared/layout/public-layout/public-layout.component';
-import { AdminLayoutComponent } from './shared/layouts/admin-layout/admin-layout.component';
-import { StaffLayoutComponent } from './shared/layouts/staff-layout/staff-layout.component';
-import { ManagerLayoutComponent } from './shared/layouts/manager-layout/manager-layout.component';
+import { AdminLayoutComponent } from './shared/layout-admin/admin-layout/admin-layout.component';
+import { StaffLayoutComponent } from './shared/layout-staff/staff-layout/staff-layout.component';
+import { ManagerLayoutComponent } from './shared/layout-manager/manager-layout/manager-layout.component';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 
@@ -58,10 +58,15 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminLayoutComponent,
-    canActivate: [authGuard, roleGuard(['ADMIN'])],
+    // canActivate: [authGuard, roleGuard(['ADMIN'])], // Tạm comment để test
     children: [
       {
         path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
         loadComponent: () =>
           import('./pages/admin/admin-dashboard.component').then(
             (m) => m.AdminDashboardComponent
@@ -73,10 +78,15 @@ export const routes: Routes = [
   {
     path: 'staff',
     component: StaffLayoutComponent,
-    canActivate: [authGuard, roleGuard(['STAFF'])],
+    // canActivate: [authGuard, roleGuard(['STAFF'])],
     children: [
       {
         path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
         loadComponent: () =>
           import('./pages/staff/staff-dashboard.component').then(
             (m) => m.StaffDashboardComponent
@@ -88,10 +98,15 @@ export const routes: Routes = [
   {
     path: 'manager',
     component: ManagerLayoutComponent,
-    canActivate: [authGuard, roleGuard(['MANAGER'])],
+    // canActivate: [authGuard, roleGuard(['MANAGER'])],
     children: [
       {
         path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
         loadComponent: () =>
           import('./pages/manager/manager-dashboard.component').then(
             (m) => m.ManagerDashboardComponent
