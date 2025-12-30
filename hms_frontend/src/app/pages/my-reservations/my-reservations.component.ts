@@ -95,7 +95,12 @@ export class MyReservationsComponent implements OnInit {
     }
     return true;
   }
-  /*
+
+  canPayNow(reservation: Reservation): boolean {
+    // Chỉ hiển thị nút thanh toán nếu trạng thái là PENDING
+    return reservation.status === 'PENDING';
+  }
+
   cancelReservation(reservation: Reservation): void {
     if (!confirm(`Bạn có chắc chắn muốn hủy đặt phòng ${reservation.roomTypeName}?`)) {
       return;
@@ -119,5 +124,14 @@ export class MyReservationsComponent implements OnInit {
         this.loading.set(false);
       }
     });
-  }*/
+  }
+
+  payNow(reservation: Reservation): void {
+    // Điều hướng đến trang thanh toán hoặc mở modal thanh toán
+    alert('Chức năng thanh toán đang được phát triển. Mã đặt phòng: ' + reservation.reservationCode);
+  }
+
+  formatVND(amount: number): string {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  }
 }

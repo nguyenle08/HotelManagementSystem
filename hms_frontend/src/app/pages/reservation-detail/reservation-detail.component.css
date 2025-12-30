@@ -151,6 +151,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .btn-cancel:hover:not(:disabled) {
@@ -160,6 +163,25 @@
 .btn-cancel:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn-pay {
+  border: 1px solid #f59e0b;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-pay:hover {
+  background: #f59e0b;
+  color: #fff;
 }
 
 .lock-box {

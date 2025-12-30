@@ -48,6 +48,13 @@ export class ReservationDetailComponent implements OnInit {
     return d.status === 'PENDING' && d.paymentStatus === 'PENDING';
   });
 
+  readonly canPayNow = computed(() => {
+    const d = this.detail();
+    if (!d) return false;
+
+    return d.status === 'PENDING' && d.paymentStatus === 'PENDING';
+  });
+
   ngOnInit(): void {
     const reservationId = this.route.snapshot.paramMap.get('id');
     if (reservationId) {
@@ -65,15 +72,30 @@ export class ReservationDetailComponent implements OnInit {
     const d = this.detail();
     if (!d) return;
 
+    if (!confirm(`Bạn có chắc chắn muốn hủy đặt phòng ${d.roomTypeName}?`)) {
+      return;
+    }
+
     this.service.cancelReservation(d.reservationId).subscribe({
       next: () => {
-        alert('Booking cancelled successfully!');
+        alert('Hủy đặt phòng thành công!');
         d.status = 'CANCELLED';
       },
       error: (err) => {
         console.error(err);
-        alert('Failed to cancel booking.');
+        alert('Không thể hủy đặt phòng.');
       },
     });
+  }
+
+  payNow() {
+    const d = this.detail();
+    if (!d) return;
+
+    alert('Chức năng thanh toán đang được phát triển. Mã đặt phòng: ' + d.reservationCode);
+  }
+
+  formatVND(amount: number): string {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
   }
 }

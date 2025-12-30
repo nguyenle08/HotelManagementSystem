@@ -58,13 +58,14 @@ public class ReservationController {
   @GetMapping("/{reservationId}")
   public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
     @PathVariable String reservationId,
-    Authentication authentication) {
+    Authentication authentication,
+    @RequestHeader(value = "Authorization", required = false) String authHeader) {
 
     try {
       String userId = authentication.getName();
 
       ReservationDetailResponse detail =
-        reservationDetailService.getDetail(reservationId, userId);
+        reservationDetailService.getDetail(reservationId, userId, authHeader);
 
       return ResponseEntity.ok(
         new ApiResponse<>(true, "Lấy chi tiết đặt phòng thành công", detail)

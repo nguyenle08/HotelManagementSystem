@@ -38,8 +38,8 @@
             
             <div class="room-footer">
               <div class="price">
-                <span class="amount">${{ room.basePrice }}</span>
-                <span class="per">/night</span>
+                <span class="amount">{{ formatVND(room.basePrice) }}</span>
+                <span class="per">/đêm</span>
               </div>
               <button class="btn-book" (click)="viewRoomDetail(room.roomTypeId)">
                 Book Now

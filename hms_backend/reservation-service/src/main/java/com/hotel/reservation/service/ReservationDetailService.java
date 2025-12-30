@@ -2,8 +2,10 @@ package com.hotel.reservation.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotel.reservation.client.UserServiceClient;
 import com.hotel.reservation.dto.ReservationDetailResponse;
 import com.hotel.reservation.dto.RoomTypeResponse;
+import com.hotel.reservation.dto.UserProfileResponse;
 import com.hotel.reservation.entity.Reservation;
 import com.hotel.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,9 +19,10 @@ public class ReservationDetailService {
 
   private final ReservationRepository reservationRepository;
   private final RestTemplate restTemplate;
+  private final UserServiceClient userServiceClient;
   private final ObjectMapper objectMapper;
 
-  public ReservationDetailResponse getDetail(String reservationId, String userId) {
+  public ReservationDetailResponse getDetail(String reservationId, String userId, String authHeader) {
 
     Reservation reservation = reservationRepository.findById(reservationId)
       .orElseThrow(() -> new RuntimeException("Reservation not found"));
@@ -30,12 +33,13 @@ public class ReservationDetailService {
 
     RoomTypeResponse roomType = getRoomTypeInfo(reservation.getRoomTypeId());
 
-    return toDetailResponse(reservation, roomType);
+    return toDetailResponse(reservation, roomType, authHeader);
   }
 
   private ReservationDetailResponse toDetailResponse(
     Reservation r,
-    RoomTypeResponse roomType
+    RoomTypeResponse roomType,
+    String authHeader
   ) {
 
     ReservationDetailResponse res = new ReservationDetailResponse();
@@ -63,9 +67,34 @@ public class ReservationDetailService {
     res.setStatus(r.getStatus());
     res.setPaymentStatus(r.getPaymentStatus());
 
-    res.setGuestFullName(r.getGuestFullName());
-    res.setGuestEmail(r.getGuestEmail());
-    res.setGuestPhone(r.getGuestPhone());
+    // Ưu tiên lấy thông tin guest từ reservation
+    // Nếu không có hoặc là "Unknown", thử lấy từ User Service
+    if (r.getGuestFullName() != null && !r.getGuestFullName().isEmpty() 
+        && !"Unknown".equals(r.getGuestFullName())) {
+      res.setGuestFullName(r.getGuestFullName());
+      res.setGuestEmail(r.getGuestEmail());
+      res.setGuestPhone(r.getGuestPhone());
+    } else {
+      // Fallback: Lấy thông tin realtime từ User Service
+      try {
+        UserProfileResponse user = userServiceClient.getUserProfile(r.getUserId());
+        if (user != null) {
+          res.setGuestFullName(user.getFullName());
+          res.setGuestEmail(user.getEmail());
+          res.setGuestPhone(user.getPhone() != null ? user.getPhone() : "Chưa cập nhật");
+        } else {
+          res.setGuestFullName("Guest User");
+          res.setGuestEmail("guest@example.com");
+          res.setGuestPhone("Chưa cập nhật");
+        }
+      } catch (Exception e) {
+        System.err.println("Cannot fetch user profile: " + e.getMessage());
+        // Dùng giá trị từ reservation nếu có, hoặc giá trị mặc định
+        res.setGuestFullName(r.getGuestFullName() != null ? r.getGuestFullName() : "Guest User");
+        res.setGuestEmail(r.getGuestEmail() != null ? r.getGuestEmail() : "guest@example.com");
+        res.setGuestPhone(r.getGuestPhone() != null && !r.getGuestPhone().isEmpty() ? r.getGuestPhone() : "Chưa cập nhật");
+      }
+    }
 
     res.setSpecialRequests(r.getSpecialRequests());
     res.setCreatedAt(r.getCreatedAt());

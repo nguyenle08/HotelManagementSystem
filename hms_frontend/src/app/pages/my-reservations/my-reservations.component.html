@@ -41,7 +41,7 @@
             </div>
             <div class="price-area">
               <span class="price-label">Total Price</span>
-              <span class="total-price">${{ reservation.totalAmount }}</span>
+              <span class="total-price">{{ formatVND(reservation.totalAmount) }}</span>
             </div>
           </div>
 
@@ -64,7 +64,7 @@
                       reservation.checkOutDate
                     )
                   }}
-                  nights</span
+                  Đêm</span
                 >
               </div>
             </div>
@@ -79,8 +79,24 @@
                   reservation.reservationId
                 ]"
               >
-                <i class="icon-eye"></i> View Details
+                <i class="icon-eye"></i> Xem chi tiết
               </button>
+              @if (canCancel(reservation)) {
+              <button
+                class="btn-outline btn-cancel"
+                (click)="cancelReservation(reservation)"
+              >
+                <i class="icon-cancel"></i> Hủy đặt phòng
+              </button>
+              }
+              @if (canPayNow(reservation)) {
+              <button
+                class="btn-pay"
+                (click)="payNow(reservation)"
+              >
+                <i class="icon-payment"></i> Thanh toán ngay
+              </button>
+              }
             </div>
           </div>
         </div>

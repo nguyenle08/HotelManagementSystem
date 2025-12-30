@@ -2,6 +2,7 @@ package com.hotel.reservation.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotel.reservation.client.UserServiceClient;
 import com.hotel.reservation.dto.CreateReservationRequest;
 import com.hotel.reservation.dto.ReservationResponse;
 import com.hotel.reservation.dto.RoomTypeResponse;
@@ -11,10 +12,6 @@ import com.hotel.reservation.entity.Reservation;
 import com.hotel.reservation.entity.ReservationStatus;
 import com.hotel.reservation.repository.ReservationRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -32,6 +29,7 @@ public class ReservationService {
 
   private final ReservationRepository reservationRepository;
   private final RestTemplate restTemplate;
+  private final UserServiceClient userServiceClient;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   public ReservationResponse createReservation( CreateReservationRequest request, String userId, String authHeader) {
@@ -69,23 +67,8 @@ public class ReservationService {
     UserProfileResponse user = null;
 
     try {
-      String url = "http://auth-service/api/users/" + userId;
-
-      HttpHeaders headers = new HttpHeaders();
-      headers.set("Authorization", authHeader);
-
-      HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-      ResponseEntity<UserProfileResponse> response =
-        restTemplate.exchange(
-          url,
-          HttpMethod.GET,
-          entity,
-          UserProfileResponse.class
-        );
-
-      user = response.getBody();
-
+      // Sử dụng OpenFeign để gọi Internal User Service (không cần token)
+      user = userServiceClient.getUserProfile(userId);
     } catch (Exception e) {
       System.err.println("Cannot fetch user info from auth-service: " + e.getMessage());
     }

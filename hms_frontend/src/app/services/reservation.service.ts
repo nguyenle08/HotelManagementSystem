@@ -58,4 +58,21 @@ export class ReservationService {
         })
       );
   }
+
+  cancelReservation(reservationId: string): Observable<ApiResponse<any>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http
+      .put<ApiResponse<any>>(`${this.apiUrl}/${reservationId}/cancel`, {})
+      .pipe(
+        tap({
+          next: () => this.loading.set(false),
+          error: (err) => {
+            this.loading.set(false);
+            this.error.set(err.error?.message || 'Có lỗi xảy ra khi hủy đặt phòng');
+          },
+        })
+      );
+  }
 }

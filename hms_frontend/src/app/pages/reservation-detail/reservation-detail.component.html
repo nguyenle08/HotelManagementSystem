@@ -1,14 +1,14 @@
-<div *ngIf="service.loading()">Loading...</div>
+<div *ngIf="service.loading()">Đang tải...</div>
 
 <div *ngIf="service.error()" class="error">
   {{ service.error() }}
 </div>
 
 <div *ngIf="service.detail() as d" class="reservation-detail">
-  <a (click)="goBack()" class="breadcrumb"> ← Back to My Bookings </a>
+  <a (click)="goBack()" class="breadcrumb"> ← Quay lại đặt phòng của tôi </a>
   <div class="reservation-header">
     <div>
-      <span class="label">Booking Number</span>
+      <span class="label">Mã đặt phòng</span>
       <h1>{{ d.reservationCode }}</h1>
 
       <div class="status-group">
@@ -19,48 +19,48 @@
 
         <span class="badge payment unpaid">
           <i class="fa fa-credit-card"></i>
-          {{ d.paymentStatus || "UNPAID" }}
+          {{ d.paymentStatus || "CHƯA THANH TOÁN" }}
         </span>
       </div>
     </div>
 
     <div class="total">
-      <span>Total Amount </span>
-      <strong>{{ d.totalAmount | currency : "USD" }}</strong>
+      <span>Tổng tiền </span>
+      <strong>{{ formatVND(d.totalAmount) }}</strong>
     </div>
   </div>
 
   <div class="room-image" *ngIf="d.roomImage">
-    <img [src]="d.roomImage" alt="Room image" />
+    <img [src]="d.roomImage" alt="Hình ảnh phòng" />
   </div>
 
   <h2 class="room-name">{{ d.roomTypeName }}</h2>
 
   <div class="info-grid">
     <div class="info-card">
-      <h3><i class="fa fa-calendar"></i> Booking Dates</h3>
+      <h3><i class="fa fa-calendar"></i> Ngày đặt phòng</h3>
 
       <div class="row">
-        <span>Check-in</span>
+        <span>Nhận phòng</span>
         <strong>{{ d.checkInDate | date : "EEE, MMM d, y" }}</strong>
       </div>
 
       <div class="row">
-        <span>Check-out</span>
+        <span>Trả phòng</span>
         <strong>{{ d.checkOutDate | date : "EEE, MMM d, y" }}</strong>
       </div>
 
       <div class="row highlight">
-        <span>Total Nights</span>
-        <strong>{{ totalNights() }} nights</strong>
+        <span>Tổng số đêm</span>
+        <strong>{{ totalNights() }} đêm</strong>
       </div>
     </div>
 
     <div class="info-card">
-      <h3><i class="fa fa-user"></i> Guest Information</h3>
+      <h3><i class="fa fa-user"></i> Thông tin khách</h3>
 
       <p>
-        <strong>Name</strong><br />
+        <strong>Họ tên</strong><br />
         {{ d.guestFullName }}
       </p>
 
@@ -70,51 +70,51 @@
       </p>
 
       <p>
-        <strong>Phone</strong><br />
-        {{ d.guestPhone || "N/A" }}
+        <strong>Điện thoại</strong><br />
+        {{ d.guestPhone || "Không có" }}
       </p>
     </div>
   </div>
 
   <div class="info-card">
-    <h3><i class="fa fa-receipt"></i> Price Breakdown</h3>
+    <h3><i class="fa fa-receipt"></i> Chi tiết giá</h3>
 
     <div class="row">
       <span>
-        {{ d.pricePerNight | currency : "USD" }}
-        × {{ totalNights() }} nights
+        {{ formatVND(d.pricePerNight) }}
+        × {{ totalNights() }} đêm
       </span>
       <strong>
-        {{ d.pricePerNight * totalNights() | currency : "USD" }}
+        {{ formatVND(d.pricePerNight * totalNights()) }}
       </strong>
     </div>
 
     <div class="row">
-      <span>Taxes & Fees</span>
-      <strong>{{ taxes() | currency : "USD" }}</strong>
+      <span>Thuế & Phí dịch vụ</span>
+      <strong>{{ formatVND(taxes()) }}</strong>
     </div>
 
     <div class="row total">
-      <span>Total Amount</span>
-      <strong>{{ d.totalAmount | currency : "USD" }}</strong>
+      <span>Tổng tiền</span>
+      <strong>{{ formatVND(d.totalAmount) }}</strong>
     </div>
   </div>
 
   <div class="info-card">
-    <h3><i class="fa fa-info-circle"></i> Booking Information</h3>
+    <h3><i class="fa fa-info-circle"></i> Thông tin đặt phòng</h3>
 
     <div class="row">
-      <span>Booked On</span>
+      <span>Ngày đặt</span>
       <strong>{{ d.createdAt | date }}</strong>
     </div>
 
     <div class="row">
-      <span>Booking Status</span>
+      <span>Trạng thái đặt phòng</span>
       <span class="badge pending">{{ d.status }}</span>
     </div>
 
     <div class="row">
-      <span>Payment Status</span>
+      <span>Trạng thái thanh toán</span>
       <span class="badge pending">{{ d.paymentStatus }}</span>
     </div>
   </div>
@@ -126,27 +126,35 @@
       (click)="cancelBooking()"
     >
       <i class="fa fa-times"></i>
-      Cancel Booking
+      Hủy đặt phòng
+    </button>
+
+    <button
+      *ngIf="canPayNow()"
+      class="btn-pay"
+      (click)="payNow()"
+    >
+      <i class="fa fa-credit-card"></i>
+      Thanh toán ngay
     </button>
 
     <div class="lock-box" *ngIf="!canCancel()">
       <i class="fa fa-lock"></i>
       <div>
-        <strong>Editing Disabled</strong>
+        <strong>Không thể chỉnh sửa</strong>
         <p>
-          Confirmed bookings cannot be edited. Please contact support for
-          changes.
+          Đặt phòng đã xác nhận không thể chỉnh sửa. Vui lòng liên hệ hỗ trợ để thay đổi.
         </p>
       </div>
     </div>
   </div>
 
   <div class="info-card policy">
-    <h3>Cancellation Policy</h3>
+    <h3>Chính sách hủy phòng</h3>
     <ul>
-      <li>Free cancellation up to 24 hours before check-in</li>
-      <li>No refund within 24 hours of check-in</li>
-      <li>No refund for no-shows</li>
+      <li>Miễn phí hủy phòng trước 24 giờ check-in</li>
+      <li>Không hoàn tiền nếu hủy trong vòng 24 giờ trước check-in</li>
+      <li>Không hoàn tiền nếu không đến</li>
     </ul>
   </div>
 </div>
