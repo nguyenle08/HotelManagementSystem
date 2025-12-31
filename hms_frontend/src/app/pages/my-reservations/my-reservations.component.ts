@@ -44,12 +44,16 @@ export class MyReservationsComponent implements OnInit {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'PENDING':
-        return 'status-pending';
       case 'CONFIRMED':
         return 'status-confirmed';
+      case 'CHECKED_IN':
+        return 'status-checked-in';
+      case 'CHECKED_OUT':
+        return 'status-checked-out';
       case 'CANCELLED':
         return 'status-cancelled';
+      case 'NO_SHOW':
+        return 'status-no-show';
       default:
         return '';
     }
@@ -57,12 +61,16 @@ export class MyReservationsComponent implements OnInit {
 
   getStatusText(status: string): string {
     switch (status) {
-      case 'PENDING':
-        return 'Chờ xác nhận';
       case 'CONFIRMED':
         return 'Đã xác nhận';
+      case 'CHECKED_IN':
+        return 'Đã nhận phòng';
+      case 'CHECKED_OUT':
+        return 'Đã trả phòng';
       case 'CANCELLED':
         return 'Đã hủy';
+      case 'NO_SHOW':
+        return 'Không đến';
       default:
         return status;
     }
@@ -97,8 +105,43 @@ export class MyReservationsComponent implements OnInit {
   }
 
   canPayNow(reservation: Reservation): boolean {
-    // Chỉ hiển thị nút thanh toán nếu trạng thái là PENDING
-    return reservation.status === 'PENDING';
+    // Hiển thị nút thanh toán nếu đã xác nhận nhưng chưa thanh toán
+    return reservation.status === 'CONFIRMED' && reservation.paymentStatus === 'UNPAID';
+  }
+
+  getPaymentStatusText(paymentStatus: string): string {
+    switch (paymentStatus) {
+      case 'UNPAID':
+        return 'Chưa thanh toán';
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'PARTIAL':
+        return 'Đã đặt cọc';
+      case 'REFUNDED':
+        return 'Đã hoàn tiền';
+      default:
+        return paymentStatus;
+    }
+  }
+
+  getPaymentStatusClass(paymentStatus: string): string {
+    switch (paymentStatus) {
+      case 'UNPAID':
+        return 'payment-unpaid';
+      case 'PAID':
+        return 'payment-paid';
+      case 'PARTIAL':
+        return 'payment-partial';
+      case 'REFUNDED':
+        return 'payment-refunded';
+      default:
+        return '';
+    }
+  }
+
+  isAfterCancelDeadline(reservation: Reservation): boolean {
+    if (!reservation.canCancelUntil) return false;
+    return new Date() > new Date(reservation.canCancelUntil);
   }
 
   cancelReservation(reservation: Reservation): void {

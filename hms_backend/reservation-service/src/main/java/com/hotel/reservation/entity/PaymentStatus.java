@@ -1,9 +1,10 @@
 package com.hotel.reservation.entity;
 
 public enum PaymentStatus {
-  PENDING,
+  UNPAID,
   PAID,
-  FAILED,
-  REFUNDED
+  PARTIAL,
+  REFUNDED,
+  FAILED
 }
 

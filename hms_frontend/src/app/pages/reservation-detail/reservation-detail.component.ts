@@ -45,14 +45,14 @@ export class ReservationDetailComponent implements OnInit {
     const d = this.detail();
     if (!d) return false;
 
-    return d.status === 'PENDING' && d.paymentStatus === 'PENDING';
+    return d.status === 'CONFIRMED' && d.paymentStatus === 'UNPAID';
   });
 
   readonly canPayNow = computed(() => {
     const d = this.detail();
     if (!d) return false;
 
-    return d.status === 'PENDING' && d.paymentStatus === 'PENDING';
+    return d.status === 'CONFIRMED' && d.paymentStatus === 'UNPAID';
   });
 
   ngOnInit(): void {
@@ -97,5 +97,39 @@ export class ReservationDetailComponent implements OnInit {
 
   formatVND(amount: number): string {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+  }
+
+  getStatusText(status: string): string {
+    switch (status) {
+      case 'CONFIRMED':
+        return 'Đã xác nhận';
+      case 'CHECKED_IN':
+        return 'Đã nhận phòng';
+      case 'CHECKED_OUT':
+        return 'Đã trả phòng';
+      case 'CANCELLED':
+        return 'Đã hủy';
+      case 'NO_SHOW':
+        return 'Không đến';
+      default:
+        return status;
+    }
+  }
+
+  getPaymentStatusText(status: string): string {
+    switch (status) {
+      case 'UNPAID':
+        return 'Chưa thanh toán';
+      case 'PAID':
+        return 'Đã thanh toán';
+      case 'PARTIAL':
+        return 'Thanh toán một phần';
+      case 'REFUNDED':
+        return 'Đã hoàn tiền';
+      case 'FAILED':
+        return 'Thanh toán thất bại';
+      default:
+        return status;
+    }
   }
 }

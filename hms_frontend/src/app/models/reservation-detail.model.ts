@@ -15,14 +15,13 @@ export interface ReservationDetail {
   totalAmount: number;
 
   status:
-    | 'PENDING'
     | 'CONFIRMED'
     | 'CHECKED_IN'
     | 'CHECKED_OUT'
     | 'CANCELLED'
     | 'NO_SHOW';
 
-  paymentStatus: 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED';
+  paymentStatus: 'UNPAID' | 'PAID' | 'PARTIAL' | 'REFUNDED' | 'FAILED';
 
   // Guest snapshot (flat – đúng BE)
   guestFullName: string;
@@ -53,14 +52,13 @@ export interface ReservationDetail {
   totalAmount: number;
 
   reservationStatus:
-    | 'PENDING'
     | 'CONFIRMED'
     | 'CHECKED_IN'
     | 'CHECKED_OUT'
     | 'CANCELLED'
     | 'NO_SHOW';
 
-  paymentStatus: 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED';
+  paymentStatus: 'UNPAID' | 'PAID' | 'PARTIAL' | 'REFUNDED' | 'FAILED';
 
   guest: {
     fullName: string;

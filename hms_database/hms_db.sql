@@ -148,27 +148,57 @@ USE reservation_service_db;
 CREATE TABLE reservations (
     reservation_id CHAR(36) PRIMARY KEY,
     reservation_code VARCHAR(30) UNIQUE NOT NULL,
+    user_id CHAR(36) NOT NULL,
     guest_id CHAR(36) NOT NULL,
     
+    -- Room info
     room_type_id CHAR(36) NOT NULL,
     room_type_name VARCHAR(100) NOT NULL,
     price_per_night DECIMAL(10,2) NOT NULL,
     
+    -- Dates
     check_in_date DATE NOT NULL,
     check_out_date DATE NOT NULL,
+    num_nights INT GENERATED ALWAYS AS (DATEDIFF(check_out_date, check_in_date)) STORED,
     num_adults INT DEFAULT 1,
     num_children INT DEFAULT 0,
     
-    total_amount DECIMAL(12,2) NOT NULL,
+    -- Pricing
+    base_amount DECIMAL(12,2) NOT NULL,           -- Tiền phòng gốc (price_per_night * num_nights)
+    additional_charges DECIMAL(12,2) DEFAULT 0,   -- Phụ phí (minibar, late checkout...)
+    discount_amount DECIMAL(12,2) DEFAULT 0,      -- Giảm giá (nếu có)
+    total_amount DECIMAL(12,2) NOT NULL,          -- Tổng tiền cuối
     
-    status VARCHAR(20) DEFAULT 'PENDING'
-        CHECK (status IN ('PENDING','CONFIRMED','CHECKED_IN','CHECKED_OUT','CANCELLED','NO_SHOW')),
+    -- Payment tracking
+    payment_status VARCHAR(20) DEFAULT 'UNPAID'
+        CHECK (payment_status IN ('UNPAID','PAID','PARTIAL','REFUNDED')),
+    paid_amount DECIMAL(12,2) DEFAULT 0,          -- Số tiền đã thanh toán
+    remaining_amount DECIMAL(12,2) GENERATED ALWAYS AS (total_amount - paid_amount) STORED,
     
+    -- Reservation status
+    status VARCHAR(20) DEFAULT 'CONFIRMED'
+        CHECK (status IN ('CONFIRMED','CHECKED_IN','CHECKED_OUT','CANCELLED','NO_SHOW')),
+    
+    -- Cancellation
+    cancellation_policy VARCHAR(50) DEFAULT 'FREE_24H', -- FREE_24H / NON_REFUNDABLE / FLEXIBLE
+    can_cancel_until DATETIME,                    -- Hạn chót có thể hủy miễn phí
+    cancelled_at TIMESTAMP NULL,
+    cancellation_reason TEXT,
+    cancellation_fee DECIMAL(12,2) DEFAULT 0,
+    
+    -- Check-in/out tracking
+    actual_check_in_time DATETIME NULL,
+    actual_check_out_time DATETIME NULL,
+    check_in_staff_id CHAR(36),                   -- Staff xử lý check-in
+    check_out_staff_id CHAR(36),                  -- Staff xử lý check-out
+    
+    -- Notes
     special_requests TEXT,
-    
+    staff_notes TEXT,                             -- Ghi chú nội bộ của staff
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    
+
     CHECK (check_out_date > check_in_date)
 );
 
@@ -195,8 +225,11 @@ CREATE TABLE reservation_status_history (
 );
 
 CREATE INDEX idx_reservation_guest ON reservations(guest_id);
+CREATE INDEX idx_reservation_user ON reservations(user_id);
 CREATE INDEX idx_reservation_dates ON reservations(check_in_date, check_out_date);
 CREATE INDEX idx_reservation_status ON reservations(status);
+CREATE INDEX idx_reservation_payment_status ON reservations(payment_status);
+CREATE INDEX idx_reservation_check_in_date ON reservations(check_in_date);
 
 -- ============================================================================
 -- PAYMENT SERVICE DATABASE
@@ -208,12 +241,29 @@ USE payment_service_db;
 CREATE TABLE payments (
     payment_id CHAR(36) PRIMARY KEY,
     reservation_id CHAR(36) NOT NULL,
-    payment_type VARCHAR(20) DEFAULT 'FULL', -- DEPOSIT / FULL / REFUND
+    
+    -- Payment details
+    payment_type VARCHAR(20) DEFAULT 'FULL',       -- DEPOSIT / FULL / ADDITIONAL / REFUND
+    payment_method VARCHAR(30) DEFAULT 'ONLINE',   -- ONLINE / CASH / CARD / BANK_TRANSFER
     amount DECIMAL(12,2) NOT NULL,
+    
+    -- Payment gateway (nếu online)
+    gateway VARCHAR(30),                            -- VNPAY / MOMO / ZALOPAY
+    gateway_transaction_id VARCHAR(100),
+    
+    -- Status
     status VARCHAR(20) DEFAULT 'PENDING'
-        CHECK (status IN ('PENDING','PAID','FAILED','REFUNDED')),
+        CHECK (status IN ('PENDING','COMPLETED','FAILED','REFUNDED','CANCELLED')),
+    
+    -- Timestamps
     paid_at TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    refunded_at TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    -- Staff handling (nếu thanh toán tại quầy)
+    processed_by_staff_id CHAR(36),
+    notes TEXT
 );
 
 CREATE TABLE payment_transactions (

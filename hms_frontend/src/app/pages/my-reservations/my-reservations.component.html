@@ -33,15 +33,25 @@
           <div class="card-header">
             <div class="title-area">
               <h3>{{ reservation.roomTypeName }}</h3>
-              <span
-                [class]="'status-badge ' + getStatusClass(reservation.status)"
-              >
-                {{ getStatusText(reservation.status) }}
-              </span>
+              <div class="badges">
+                <span
+                  [class]="'status-badge ' + getStatusClass(reservation.status)"
+                >
+                  {{ getStatusText(reservation.status) }}
+                </span>
+                <span
+                  [class]="'payment-badge ' + getPaymentStatusClass(reservation.paymentStatus)"
+                >
+                  {{ getPaymentStatusText(reservation.paymentStatus) }}
+                </span>
+              </div>
             </div>
             <div class="price-area">
               <span class="price-label">Total Price</span>
               <span class="total-price">{{ formatVND(reservation.totalAmount) }}</span>
+              @if (reservation.paidAmount > 0) {
+              <span class="paid-amount">Đã thanh toán: {{ formatVND(reservation.paidAmount) }}</span>
+              }
             </div>
           </div>
 
@@ -68,6 +78,17 @@
                 >
               </div>
             </div>
+            
+            @if (reservation.canCancelUntil && canCancel(reservation)) {
+            <div class="cancellation-notice">
+              <i class="icon-info"></i>
+              @if (isAfterCancelDeadline(reservation)) {
+              <span class="warning">⚠️ Hủy phòng sau {{ formatDate(reservation.canCancelUntil) }} sẽ bị phí 50%</span>
+              } @else {
+              <span class="info">Miễn phí hủy trước {{ formatDate(reservation.canCancelUntil) }}</span>
+              }
+            </div>
+            }
           </div>
 
           <div class="card-footer">

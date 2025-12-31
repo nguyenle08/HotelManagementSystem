@@ -14,12 +14,12 @@
       <div class="status-group">
         <span class="badge status pending">
           <i class="fa fa-clock"></i>
-          {{ d.status }}
+          {{ getStatusText(d.status) }}
         </span>
 
         <span class="badge payment unpaid">
           <i class="fa fa-credit-card"></i>
-          {{ d.paymentStatus || "CHƯA THANH TOÁN" }}
+          {{ getPaymentStatusText(d.paymentStatus || 'UNPAID') }}
         </span>
       </div>
     </div>
@@ -110,12 +110,12 @@
 
     <div class="row">
       <span>Trạng thái đặt phòng</span>
-      <span class="badge pending">{{ d.status }}</span>
+      <span class="badge pending">{{ getStatusText(d.status) }}</span>
     </div>
 
     <div class="row">
       <span>Trạng thái thanh toán</span>
-      <span class="badge pending">{{ d.paymentStatus }}</span>
+      <span class="badge pending">{{ getPaymentStatusText(d.paymentStatus) }}</span>
     </div>
   </div>
 

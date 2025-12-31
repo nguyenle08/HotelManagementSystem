@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -43,12 +44,8 @@ public class ReservationService {
 
     long nights = ChronoUnit.DAYS.between(request.getCheckInDate(), request.getCheckOutDate());
 
-    BigDecimal subtotal = roomType.getBasePrice().multiply(BigDecimal.valueOf(nights));
-
-    BigDecimal taxRate = BigDecimal.valueOf(0.1);
-    BigDecimal taxAmount = subtotal.multiply(taxRate);
-
-    BigDecimal totalAmount = subtotal.add(taxAmount);
+    BigDecimal baseAmount = roomType.getBasePrice().multiply(BigDecimal.valueOf(nights));
+    BigDecimal totalAmount = baseAmount; // Có thể thêm tax/fees sau
 
     Reservation reservation = new Reservation();
     reservation.setUserId(userId);
@@ -61,8 +58,24 @@ public class ReservationService {
     reservation.setNumChildren(request.getNumChildren() != null ? request.getNumChildren() : 0);
     reservation.setSpecialRequests(request.getSpecialRequests());
     reservation.setPricePerNight(roomType.getBasePrice());
+    
+    // Set pricing
+    reservation.setBaseAmount(baseAmount);
     reservation.setTotalAmount(totalAmount);
-    reservation.setStatus(ReservationStatus.PENDING);
+    
+    // ⭐ KEY: Tự động CONFIRMED, không cần Staff xác nhận
+    reservation.setStatus(ReservationStatus.CONFIRMED);
+    
+    // Payment status = UNPAID (khách có thể thanh toán sau)
+    reservation.setPaymentStatus(PaymentStatus.UNPAID);
+    reservation.setPaidAmount(BigDecimal.ZERO);
+    
+    // Chính sách hủy: Miễn phí trước 24h
+    reservation.setCancellationPolicy("FREE_24H");
+    LocalDateTime cancelDeadline = request.getCheckInDate()
+        .atStartOfDay()
+        .minusHours(24);
+    reservation.setCanCancelUntil(cancelDeadline);
 
     UserProfileResponse user = null;
 
@@ -116,17 +129,28 @@ public class ReservationService {
       .findByReservationIdAndUserId(reservationId, userId)
       .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
 
-    if (!ReservationStatus.PENDING.equals(reservation.getStatus())) {
-      throw new IllegalStateException("Cannot cancel reservation: status is not PENDING");
+    // Chỉ cho phép hủy nếu đang CONFIRMED
+    if (!ReservationStatus.CONFIRMED.equals(reservation.getStatus())) {
+      throw new IllegalStateException("Cannot cancel reservation: status is " + reservation.getStatus());
     }
 
-    if (!PaymentStatus.PENDING.equals(reservation.getPaymentStatus())) {
-      throw new IllegalStateException("Cannot cancel reservation: payment is already processed");
+    // Kiểm tra còn trong thời gian hủy miễn phí không
+    LocalDateTime now = LocalDateTime.now();
+    BigDecimal cancellationFee = BigDecimal.ZERO;
+    
+    if (reservation.getCanCancelUntil() != null && now.isAfter(reservation.getCanCancelUntil())) {
+      // Quá hạn hủy miễn phí → Phí 50%
+      cancellationFee = reservation.getTotalAmount().multiply(BigDecimal.valueOf(0.5));
     }
 
     reservation.setStatus(ReservationStatus.CANCELLED);
+    reservation.setCancelledAt(LocalDateTime.now());
+    reservation.setCancellationFee(cancellationFee);
 
     reservationRepository.save(reservation);
+    
+    // TODO: Unlock phòng trong room_availability
+    // TODO: Hoàn tiền nếu đã thanh toán (trừ phí)
   }
 
   private void validateDates(LocalDate checkIn, LocalDate checkOut) {
@@ -165,25 +189,52 @@ public class ReservationService {
   }
 
   private ReservationResponse toResponse(Reservation r, RoomTypeResponse roomType) {
-    return new ReservationResponse(
-      r.getReservationId(),
-      r.getReservationCode(),
-      r.getUserId(),
-      r.getRoomTypeId(),
-      roomType != null ? roomType.getName() : null,
-      roomType != null && roomType.getImages() != null && !roomType.getImages().isEmpty()
+    // Calculate remaining amount
+    BigDecimal remaining = r.getTotalAmount().subtract(r.getPaidAmount() != null ? r.getPaidAmount() : BigDecimal.ZERO);
+    
+    ReservationResponse response = new ReservationResponse();
+    response.setReservationId(r.getReservationId());
+    response.setReservationCode(r.getReservationCode());
+    response.setUserId(r.getUserId());
+    response.setRoomTypeId(r.getRoomTypeId());
+    response.setRoomTypeName(roomType != null ? roomType.getName() : r.getRoomTypeName());
+    response.setRoomImage(roomType != null && roomType.getImages() != null && !roomType.getImages().isEmpty()
         ? roomType.getImages().get(0)
-        : null,
-      r.getCheckInDate(),
-      r.getCheckOutDate(),
-      r.getNumAdults(),
-      r.getNumChildren(),
-      r.getTotalAmount(),
-      r.getPricePerNight(),
-      r.getSpecialRequests(),
-      r.getStatus(),
-      r.getCreatedAt()
-    );
+        : null);
+    response.setCheckInDate(r.getCheckInDate());
+    response.setCheckOutDate(r.getCheckOutDate());
+    response.setNumAdults(r.getNumAdults());
+    response.setNumChildren(r.getNumChildren());
+    
+    // Pricing
+    response.setBaseAmount(r.getBaseAmount());
+    response.setAdditionalCharges(r.getAdditionalCharges());
+    response.setDiscountAmount(r.getDiscountAmount());
+    response.setTotalAmount(r.getTotalAmount());
+    response.setPricePerNight(r.getPricePerNight());
+    
+    // Payment
+    response.setPaymentStatus(r.getPaymentStatus());
+    response.setPaidAmount(r.getPaidAmount() != null ? r.getPaidAmount() : BigDecimal.ZERO);
+    response.setRemainingAmount(remaining);
+    
+    // Cancellation
+    response.setCancellationPolicy(r.getCancellationPolicy());
+    response.setCanCancelUntil(r.getCanCancelUntil());
+    response.setCancelledAt(r.getCancelledAt());
+    response.setCancellationReason(r.getCancellationReason());
+    response.setCancellationFee(r.getCancellationFee());
+    
+    // Notes
+    response.setSpecialRequests(r.getSpecialRequests());
+    response.setStaffNotes(r.getStaffNotes());
+    
+    // Status - ĐÂY LÀ QUAN TRỌNG!
+    response.setStatus(r.getStatus());
+    
+    response.setCreatedAt(r.getCreatedAt());
+    
+    return response;
   }
 
 }

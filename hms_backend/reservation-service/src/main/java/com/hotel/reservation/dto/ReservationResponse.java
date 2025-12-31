@@ -1,5 +1,6 @@
 package com.hotel.reservation.dto;
 
+import com.hotel.reservation.entity.PaymentStatus;
 import com.hotel.reservation.entity.ReservationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,9 +24,32 @@ public class ReservationResponse {
     private LocalDate checkOutDate;
     private Integer numAdults;
     private Integer numChildren;
+    
+    // Pricing
+    private BigDecimal baseAmount;
+    private BigDecimal additionalCharges;
+    private BigDecimal discountAmount;
     private BigDecimal totalAmount;
     private BigDecimal pricePerNight;
+    
+    // Payment tracking
+    private PaymentStatus paymentStatus;
+    private BigDecimal paidAmount;
+    private BigDecimal remainingAmount;
+    
+    // Cancellation
+    private String cancellationPolicy;
+    private LocalDateTime canCancelUntil;
+    private LocalDateTime cancelledAt;
+    private String cancellationReason;
+    private BigDecimal cancellationFee;
+    
+    // Notes
     private String specialRequests;
+    private String staffNotes;
+    
+    // Status
     private ReservationStatus status;
+    
     private LocalDateTime createdAt;
 }
