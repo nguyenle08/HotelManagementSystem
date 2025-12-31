@@ -12,8 +12,12 @@ import java.util.List;
 public interface RoomAvailabilityRepository extends JpaRepository<RoomAvailability, String> {
 
     @Query("SELECT DISTINCT ra.roomId FROM RoomAvailability ra " +
-            "WHERE ra.date BETWEEN :checkIn AND :checkOut " +
+            "WHERE ra.date >= :checkIn AND ra.date < :checkOut " +
             "AND ra.status IN ('RESERVED', 'OCCUPIED', 'BLOCKED')")
     List<String> findUnavailableRoomIds(@Param("checkIn") LocalDate checkIn,
                                         @Param("checkOut") LocalDate checkOut);
+
+    List<RoomAvailability> findByReservationId(String reservationId);
+
+    List<RoomAvailability> findByDateGreaterThanEqual(LocalDate date);
 }

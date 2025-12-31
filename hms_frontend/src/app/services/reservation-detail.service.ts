@@ -45,7 +45,7 @@ export class ReservationDetailService {
     this.loading.set(false);
   }
 
-  cancelReservation(reservationId: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${reservationId}/cancel`);
+  cancelReservation(reservationId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/${reservationId}/cancel`);
   }
 }

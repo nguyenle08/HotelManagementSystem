@@ -24,6 +24,8 @@ export class RoomDetailComponent implements OnInit {
   selectedImage = signal(0);
   totalPrice = signal<number>(0);
   numberOfNights = signal<number>(0);
+  availableRooms = signal<number>(0);
+  checkingAvailability = signal(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -41,17 +43,62 @@ export class RoomDetailComponent implements OnInit {
       checkOutDate: [tomorrow, Validators.required]
     });
 
-    // Calculate price when dates change
+    // Calculate price and check availability when dates change
     this.bookingForm.valueChanges.subscribe(() => {
       this.calculatePrice();
+      this.checkAvailability();
     });
   }
 
   ngOnInit(): void {
-    const roomId = this.route.snapshot.paramMap.get('id');
+    const roomId = this.route.snapshot.paramMap.get('id');    
+    // Get dates from query params if available
+    this.route.queryParams.subscribe(params => {
+      if (params['checkIn']) {
+        this.bookingForm.patchValue({
+          checkInDate: params['checkIn']
+        });
+      }
+      if (params['checkOut']) {
+        this.bookingForm.patchValue({
+          checkOutDate: params['checkOut']
+        });
+      }
+      this.calculatePrice();
+    });
     if (roomId) {
       this.loadRoomDetail(roomId);
     }
+  }
+
+  checkAvailability(): void {
+    const checkInDate = this.bookingForm.get('checkInDate')?.value;
+    const checkOutDate = this.bookingForm.get('checkOutDate')?.value;
+    const currentRoom = this.room();
+
+    if (!checkInDate || !checkOutDate || !currentRoom) {
+      return;
+    }
+
+    this.checkingAvailability.set(true);
+    this.roomService.searchRooms({
+      checkInDate,
+      checkOutDate
+    }).subscribe({
+      next: (response) => {
+        if (response.success) {
+          const roomData = response.data.find(r => r.roomTypeId === currentRoom.roomTypeId);
+          this.availableRooms.set(roomData?.availableRooms || 0);
+        } else {
+          this.availableRooms.set(0);
+        }
+        this.checkingAvailability.set(false);
+      },
+      error: () => {
+        this.availableRooms.set(0);
+        this.checkingAvailability.set(false);
+      }
+    });
   }
 
   loadRoomDetail(id: string): void {
@@ -61,6 +108,7 @@ export class RoomDetailComponent implements OnInit {
         if (response.success) {
           this.room.set(response.data);
           this.calculatePrice();
+          this.checkAvailability(); // Check availability after loading room
         }
         this.loading.set(false);
       },

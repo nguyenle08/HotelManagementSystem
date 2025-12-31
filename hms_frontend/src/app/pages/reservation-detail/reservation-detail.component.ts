@@ -77,13 +77,18 @@ export class ReservationDetailComponent implements OnInit {
     }
 
     this.service.cancelReservation(d.reservationId).subscribe({
-      next: () => {
-        alert('Hủy đặt phòng thành công!');
-        d.status = 'CANCELLED';
+      next: (response) => {
+        if (response.success) {
+          alert('Hủy đặt phòng thành công!');
+          // Reload lại data để cập nhật status
+          this.service.load(d.reservationId);
+        } else {
+          alert(response.message || 'Không thể hủy đặt phòng.');
+        }
       },
       error: (err) => {
         console.error(err);
-        alert('Không thể hủy đặt phòng.');
+        alert(err?.error?.message || 'Không thể hủy đặt phòng.');
       },
     });
   }

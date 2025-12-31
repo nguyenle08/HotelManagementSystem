@@ -100,6 +100,16 @@ public class ReservationService {
 
     Reservation saved = reservationRepository.save(reservation);
 
+    // Lock rooms trong room-service
+    try {
+      lockRoomsForReservation(saved.getReservationId(), saved.getRoomTypeId(), 
+                             saved.getCheckInDate(), saved.getCheckOutDate());
+    } catch (Exception e) {
+      // Rollback reservation nếu không lock được phòng
+      reservationRepository.delete(saved);
+      throw new RuntimeException("Không thể khóa phòng: " + e.getMessage());
+    }
+
     return toResponse(saved, roomType);
   }
 
@@ -149,8 +159,13 @@ public class ReservationService {
 
     reservationRepository.save(reservation);
     
-    // TODO: Unlock phòng trong room_availability
-    // TODO: Hoàn tiền nếu đã thanh toán (trừ phí)
+    // Unlock phòng trong room-service
+    try {
+      unlockRoomsForReservation(reservationId);
+    } catch (Exception e) {
+      System.err.println("Failed to unlock rooms: " + e.getMessage());
+      // Không throw exception vì reservation đã cancel thành công
+    }
   }
 
   private void validateDates(LocalDate checkIn, LocalDate checkOut) {
@@ -235,6 +250,50 @@ public class ReservationService {
     response.setCreatedAt(r.getCreatedAt());
     
     return response;
+  }
+
+  /**
+   * Gọi room-service để lock rooms
+   */
+  private void lockRoomsForReservation(String reservationId, String roomTypeId, 
+                                       LocalDate checkInDate, LocalDate checkOutDate) {
+    try {
+      String url = "http://room-service/internal/rooms/lock";
+      
+      String requestBody = String.format(
+        "{\"reservationId\":\"%s\",\"roomTypeId\":\"%s\",\"checkInDate\":\"%s\",\"checkOutDate\":\"%s\"}",
+        reservationId, roomTypeId, checkInDate, checkOutDate
+      );
+      
+      org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+      headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+      
+      org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(requestBody, headers);
+      
+      restTemplate.postForObject(url, entity, String.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to lock rooms: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Gọi room-service để unlock rooms
+   */
+  private void unlockRoomsForReservation(String reservationId) {
+    try {
+      String url = "http://room-service/internal/rooms/unlock";
+      
+      String requestBody = String.format("{\"reservationId\":\"%s\"}", reservationId);
+      
+      org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+      headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+      
+      org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(requestBody, headers);
+      
+      restTemplate.postForObject(url, entity, String.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to unlock rooms: " + e.getMessage());
+    }
   }
 
 }

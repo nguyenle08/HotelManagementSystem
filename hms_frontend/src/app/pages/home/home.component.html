@@ -4,6 +4,24 @@
     <div class="hero-content">
       <h1>Our Rooms</h1>
       <p>Discover comfort and luxury in every stay</p>
+      
+      <!-- Search Form -->
+      <div class="search-box">
+        <div class="search-field">
+          <label>Check-in</label>
+          <input type="date" [(ngModel)]="checkInDate" [min]="getTodayDate()">
+        </div>
+        <div class="search-field">
+          <label>Check-out</label>
+          <input type="date" [(ngModel)]="checkOutDate" [min]="checkInDate || getTodayDate()">
+        </div>
+        <button class="btn-search" (click)="searchRooms()">
+          <i class="icon-search"></i> Search Available Rooms
+        </button>
+        <button class="btn-clear" *ngIf="showingSearchResults()" (click)="clearSearch()">
+          Clear
+        </button>
+      </div>
     </div>
   </section>
   

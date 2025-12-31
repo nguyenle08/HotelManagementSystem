@@ -64,7 +64,7 @@ export class ReservationService {
     this.error.set(null);
 
     return this.http
-      .put<ApiResponse<any>>(`${this.apiUrl}/${reservationId}/cancel`, {})
+      .delete<ApiResponse<any>>(`${this.apiUrl}/${reservationId}/cancel`)
       .pipe(
         tap({
           next: () => this.loading.set(false),

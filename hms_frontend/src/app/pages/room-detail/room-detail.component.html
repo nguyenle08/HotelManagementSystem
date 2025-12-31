@@ -41,6 +41,25 @@
             <input type="date" formControlName="checkOutDate" class="form-control">
           </div>
 
+          <!-- Availability Info -->
+          <div class="availability-info">
+            @if (checkingAvailability()) {
+              <div class="checking">
+                <i class="spinner"></i> Đang kiểm tra phòng trống...
+              </div>
+            } @else if (availableRooms() > 0) {
+              <div class="available">
+                <i class="icon-check"></i> 
+                <strong>{{ availableRooms() }} phòng</strong> còn trống cho ngày bạn chọn
+              </div>
+            } @else if (bookingForm.get('checkInDate')?.value && bookingForm.get('checkOutDate')?.value) {
+              <div class="not-available">
+                <i class="icon-alert"></i> 
+                <strong>Hết phòng</strong> trong khoảng thời gian này
+              </div>
+            }
+          </div>
+
           <!-- Price Summary -->
           @if (numberOfNights() > 0) {
             <div class="price-summary">
@@ -66,9 +85,11 @@
             type="button" 
             class="btn-book-full"
             (click)="onBook()"
-            [disabled]="bookingForm.invalid || loading()">
+            [disabled]="bookingForm.invalid || loading() || availableRooms() === 0 || checkingAvailability()">
             @if (loading()) {
               <span>Đang xử lý...</span>
+            } @else if (availableRooms() === 0 && bookingForm.get('checkInDate')?.value && bookingForm.get('checkOutDate')?.value) {
+              <span>Hết phòng</span>
             } @else {
               <span>Đặt phòng ngay</span>
             }

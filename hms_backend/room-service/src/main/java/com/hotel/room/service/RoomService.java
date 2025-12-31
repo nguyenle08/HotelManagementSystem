@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.room.dto.RoomSearchRequest;
 import com.hotel.room.dto.RoomTypeResponse;
 import com.hotel.room.entity.Room;
+import com.hotel.room.entity.RoomAvailability;
 import com.hotel.room.entity.RoomType;
 import com.hotel.room.repository.RoomAvailabilityRepository;
 import com.hotel.room.repository.RoomRepository;
@@ -13,9 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -122,5 +125,63 @@ public class RoomService {
                 })
                 .filter(rt -> rt.getAvailableRooms() > 0)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Lock rooms cho reservation - tạo RoomAvailability records với status RESERVED
+     */
+    public void lockRoomsForReservation(String reservationId, String roomTypeId, 
+                                       LocalDate checkInDate, LocalDate checkOutDate) {
+        // Tìm 1 phòng available cho room type này
+        List<Room> rooms = roomRepository.findByRoomTypeIdAndStatus(roomTypeId, "ACTIVE");
+        
+        if (rooms.isEmpty()) {
+            throw new RuntimeException("Không có phòng active cho loại phòng này");
+        }
+        
+        // Lấy danh sách phòng đã bị unavailable trong khoảng thời gian
+        List<String> unavailableRoomIds = availabilityRepository
+                .findUnavailableRoomIds(checkInDate, checkOutDate);
+        
+        // Tìm phòng available
+        Room availableRoom = rooms.stream()
+                .filter(room -> !unavailableRoomIds.contains(room.getRoomId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Không còn phòng trống trong khoảng thời gian này"));
+        
+        // Tạo availability records cho mỗi ngày từ check-in đến check-out
+        LocalDate currentDate = checkInDate;
+        while (!currentDate.isAfter(checkOutDate.minusDays(1))) {
+            RoomAvailability availability = new RoomAvailability();
+            availability.setAvailabilityId(UUID.randomUUID().toString());
+            availability.setRoomId(availableRoom.getRoomId());
+            availability.setDate(currentDate);
+            availability.setStatus("RESERVED");
+            availability.setReservationId(reservationId);
+            availability.setUpdatedAt(LocalDateTime.now());
+            
+            availabilityRepository.save(availability);
+            currentDate = currentDate.plusDays(1);
+        }
+    }
+
+    /**
+     * Unlock rooms khi cancel reservation
+     */
+    public void unlockRoomsForReservation(String reservationId) {
+        List<RoomAvailability> availabilities = availabilityRepository
+                .findByReservationId(reservationId);
+        
+        availabilityRepository.deleteAll(availabilities);
+    }
+
+    /**
+     * TESTING ONLY - Xóa availability records sau một ngày cụ thể
+     */
+    public void cleanupAvailabilityAfterDate(String afterDate) {
+        LocalDate date = LocalDate.parse(afterDate);
+        List<RoomAvailability> records = availabilityRepository
+                .findByDateGreaterThanEqual(date);
+        availabilityRepository.deleteAll(records);
     }
 }
