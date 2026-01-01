@@ -1,0 +1,522 @@
+<div class="staff-container">
+  <div class="page-header">
+    <h1>Danh sách đặt phòng</h1>
+    <p class="subtitle">Quản lý và theo dõi các đặt phòng</p>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg
+        class="search-icon"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+      >
+        <path
+          d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+        placeholder="Tìm kiếm theo tên khách, mã booking, số phòng..."
+      />
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        class="filter-tab"
+        [class.active]="selectedFilter === 'ALL'"
+        (click)="onFilterChange('ALL')"
+      >
+        Tất cả
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="selectedFilter === 'CONFIRMED'"
+        (click)="onFilterChange('CONFIRMED')"
+      >
+        Đã xác nhận
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="selectedFilter === 'CHECKED_IN'"
+        (click)="onFilterChange('CHECKED_IN')"
+      >
+        Đã nhận phòng
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="selectedFilter === 'CANCELLED'"
+        (click)="onFilterChange('CANCELLED')"
+      >
+        Đã hủy
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Đang tải danh sách...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage() && !loading()" class="error-state">
+    <p>{{ errorMessage() }}</p>
+    <button class="retry-btn" (click)="loadReservations()">Thử lại</button>
+  </div>
+
+  <!-- Reservations Table -->
+  <div *ngIf="!loading() && !errorMessage()" class="table-container">
+    <table class="reservations-table">
+      <thead>
+        <tr>
+          <th>MÃ BOOKING</th>
+          <th>KHÁCH HÀNG</th>
+          <th>PHÒNG</th>
+          <th>CHECK-IN</th>
+          <th>CHECK-OUT</th>
+          <th>TRẠNG THÁI</th>
+          <th>TỔNG TIỀN</th>
+          <th>THAO TÁC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let reservation of filteredReservations()">
+          <td class="booking-code">{{ reservation.reservationCode }}</td>
+          <td>
+            <div class="guest-info">
+              <div class="guest-name">
+                {{ reservation.guestFullName || "Khách hàng" }}
+              </div>
+              <div class="guest-phone">
+                {{ reservation.guestPhoneNumber || "N/A" }}
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="room-info">
+              <div class="room-name">{{ reservation.roomTypeName }}</div>
+            </div>
+          </td>
+          <td>{{ formatDate(reservation.checkInDate) }}</td>
+          <td>{{ formatDate(reservation.checkOutDate) }}</td>
+          <td>
+            <span
+              class="status-badge"
+              [class]="getStatusClass(reservation.status)"
+            >
+              {{ getStatusText(reservation.status) }}
+            </span>
+          </td>
+          <td class="amount">{{ formatVND(reservation.totalAmount) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="action-btn view-btn"
+                (click)="viewDetail(reservation)"
+                title="Xem chi tiết"
+              >
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              <button
+                class="action-btn edit-btn"
+                (click)="editReservation(reservation)"
+                title="Chỉnh sửa"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                class="action-btn delete-btn"
+                (click)="deleteReservation(reservation)"
+                title="Xóa"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+
+              <!-- Check-in button for CONFIRMED status -->
+              <button
+                *ngIf="reservation.status === 'CONFIRMED'"
+                class="action-btn checkin-btn"
+                (click)="openCheckInModal(reservation)"
+              >
+                Check-in
+              </button>
+
+              <!-- Check-out button for CHECKED_IN status -->
+              <button
+                *ngIf="reservation.status === 'CHECKED_IN'"
+                class="action-btn checkout-btn"
+                (click)="openCheckOutModal(reservation)"
+              >
+                Check-out
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredReservations().length === 0" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"
+          fill="currentColor"
+          opacity="0.3"
+        />
+      </svg>
+      <p>Không tìm thấy đặt phòng nào</p>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" *ngIf="showDetailModal()" (click)="closeModals()">
+    <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Chi tiết đặt phòng</h2>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedReservation()">
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Mã booking</label>
+            <span>{{ selectedReservation()!.reservationCode }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Khách hàng</label>
+            <span>{{ selectedReservation()!.guestFullName || "N/A" }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Số điện thoại</label>
+            <span>{{ selectedReservation()!.guestPhoneNumber || "N/A" }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Email</label>
+            <span>{{ selectedReservation()!.guestEmail || "N/A" }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Loại phòng</label>
+            <span>{{ selectedReservation()!.roomTypeName }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Check-in</label>
+            <span>{{ formatDate(selectedReservation()!.checkInDate) }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Check-out</label>
+            <span>{{ formatDate(selectedReservation()!.checkOutDate) }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Số khách</label>
+            <span
+              >{{ selectedReservation()!.numAdults }} người lớn,
+              {{ selectedReservation()!.numChildren }} trẻ em</span
+            >
+          </div>
+          <div class="detail-item">
+            <label>Trạng thái</label>
+            <span
+              class="status-badge"
+              [class]="getStatusClass(selectedReservation()!.status)"
+            >
+              {{ getStatusText(selectedReservation()!.status) }}
+            </span>
+          </div>
+          <div class="detail-item">
+            <label>Tổng tiền</label>
+            <span class="amount-highlight">{{
+              formatVND(selectedReservation()!.totalAmount)
+            }}</span>
+          </div>
+          <div
+            class="detail-item full-width"
+            *ngIf="selectedReservation()!.specialRequests"
+          >
+            <label>Yêu cầu đặc biệt</label>
+            <span>{{ selectedReservation()!.specialRequests }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Đóng</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal()" (click)="closeModals()">
+    <div class="modal-content edit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Chỉnh sửa đặt phòng</h2>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedReservation()">
+        <form class="edit-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tên khách hàng</label>
+              <input
+                type="text"
+                [(ngModel)]="editForm.guestFullName"
+                name="guestFullName"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label>Số điện thoại</label>
+              <input
+                type="tel"
+                [(ngModel)]="editForm.guestPhoneNumber"
+                name="guestPhoneNumber"
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                [(ngModel)]="editForm.guestEmail"
+                name="guestEmail"
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ngày check-in</label>
+              <input
+                type="date"
+                [(ngModel)]="editForm.checkInDate"
+                name="checkInDate"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label>Ngày check-out</label>
+              <input
+                type="date"
+                [(ngModel)]="editForm.checkOutDate"
+                name="checkOutDate"
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số người lớn</label>
+              <input
+                type="number"
+                [(ngModel)]="editForm.numAdults"
+                name="numAdults"
+                min="1"
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label>Số trẻ em</label>
+              <input
+                type="number"
+                [(ngModel)]="editForm.numChildren"
+                name="numChildren"
+                min="0"
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Yêu cầu đặc biệt</label>
+            <textarea
+              [(ngModel)]="editForm.specialRequests"
+              name="specialRequests"
+              rows="3"
+              class="form-control"
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Ghi chú nhân viên</label>
+            <textarea
+              [(ngModel)]="editForm.staffNotes"
+              name="staffNotes"
+              rows="3"
+              class="form-control"
+            ></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Hủy</button>
+        <button class="btn-primary" (click)="saveEdit()">
+          <i class="fa-solid fa-save"></i>
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-in Modal -->
+  <div class="modal-overlay" *ngIf="showCheckInModal()" (click)="closeModals()">
+    <div class="modal-content checkin-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Xác nhận Check-in</h2>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedReservation()">
+        <div class="confirm-content">
+          <div class="confirm-icon checkin-icon">
+            <i class="fa-solid fa-right-to-bracket"></i>
+          </div>
+          <h3>{{ selectedReservation()!.guestFullName || "Khách hàng" }}</h3>
+          <p class="booking-code">
+            {{ selectedReservation()!.reservationCode }}
+          </p>
+
+          <div class="confirm-details">
+            <div class="detail-row">
+              <span>Loại phòng:</span>
+              <strong>{{ selectedReservation()!.roomTypeName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Check-in:</span>
+              <strong>{{
+                formatDate(selectedReservation()!.checkInDate)
+              }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Check-out:</span>
+              <strong>{{
+                formatDate(selectedReservation()!.checkOutDate)
+              }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Tổng tiền:</span>
+              <strong class="amount-highlight">{{
+                formatVND(selectedReservation()!.totalAmount)
+              }}</strong>
+            </div>
+          </div>
+
+          <p class="confirm-note">
+            Vui lòng xác nhận đã kiểm tra đầy đủ thông tin và giấy tờ của khách
+            trước khi check-in.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Hủy</button>
+        <button class="btn-primary checkin" (click)="confirmCheckIn()">
+          <i class="fa-solid fa-check"></i>
+          Xác nhận Check-in
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-out Modal -->
+  <div
+    class="modal-overlay"
+    *ngIf="showCheckOutModal()"
+    (click)="closeModals()"
+  >
+    <div
+      class="modal-content checkout-modal"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="modal-header">
+        <h2>Xác nhận Check-out</h2>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body" *ngIf="selectedReservation()">
+        <div class="confirm-content">
+          <div class="confirm-icon checkout-icon">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </div>
+          <h3>{{ selectedReservation()!.guestFullName || "Khách hàng" }}</h3>
+          <p class="booking-code">
+            {{ selectedReservation()!.reservationCode }}
+          </p>
+
+          <div class="confirm-details">
+            <div class="detail-row">
+              <span>Loại phòng:</span>
+              <strong>{{ selectedReservation()!.roomTypeName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Check-in:</span>
+              <strong>{{
+                formatDate(selectedReservation()!.checkInDate)
+              }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Check-out:</span>
+              <strong>{{
+                formatDate(selectedReservation()!.checkOutDate)
+              }}</strong>
+            </div>
+            <div class="detail-row">
+              <span>Tổng tiền:</span>
+              <strong class="amount-highlight">{{
+                formatVND(selectedReservation()!.totalAmount)
+              }}</strong>
+            </div>
+            <div
+              class="detail-row"
+              *ngIf="selectedReservation()!.paidAmount > 0"
+            >
+              <span>Đã thanh toán:</span>
+              <strong class="paid">{{
+                formatVND(selectedReservation()!.paidAmount)
+              }}</strong>
+            </div>
+            <div
+              class="detail-row"
+              *ngIf="
+                selectedReservation()!.remainingAmount &&
+                selectedReservation()!.remainingAmount! > 0
+              "
+            >
+              <span>Còn lại:</span>
+              <strong class="unpaid">{{
+                formatVND(selectedReservation()!.remainingAmount!)
+              }}</strong>
+            </div>
+          </div>
+
+          <p class="confirm-note warning">
+            Vui lòng kiểm tra phòng và thu đầy đủ thanh toán trước khi
+            check-out.
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Hủy</button>
+        <button class="btn-primary checkout" (click)="confirmCheckOut()">
+          <i class="fa-solid fa-check"></i>
+          Xác nhận Check-out
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

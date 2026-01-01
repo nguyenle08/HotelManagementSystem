@@ -59,6 +59,27 @@ export class ReservationService {
       );
   }
 
+  // Staff/Admin: Get all reservations in the system
+  getAllReservations(): Observable<ApiResponse<Reservation[]>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http.get<ApiResponse<Reservation[]>>(`${this.apiUrl}/all`).pipe(
+      tap({
+        next: (response) => {
+          if (response.success) {
+            this.reservations.set(response.data);
+          }
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.error.set(err.error?.message || 'Có lỗi xảy ra');
+        },
+      })
+    );
+  }
+
   cancelReservation(reservationId: string): Observable<ApiResponse<any>> {
     this.loading.set(true);
     this.error.set(null);
@@ -70,7 +91,73 @@ export class ReservationService {
           next: () => this.loading.set(false),
           error: (err) => {
             this.loading.set(false);
-            this.error.set(err.error?.message || 'Có lỗi xảy ra khi hủy đặt phòng');
+            this.error.set(
+              err.error?.message || 'Có lỗi xảy ra khi hủy đặt phòng'
+            );
+          },
+        })
+      );
+  }
+
+  checkInReservation(
+    reservationId: string
+  ): Observable<ApiResponse<Reservation>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http
+      .put<ApiResponse<Reservation>>(
+        `${this.apiUrl}/${reservationId}/check-in`,
+        {}
+      )
+      .pipe(
+        tap({
+          next: () => this.loading.set(false),
+          error: (err) => {
+            this.loading.set(false);
+            this.error.set(err.error?.message || 'Có lỗi xảy ra khi check-in');
+          },
+        })
+      );
+  }
+
+  checkOutReservation(
+    reservationId: string
+  ): Observable<ApiResponse<Reservation>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http
+      .put<ApiResponse<Reservation>>(
+        `${this.apiUrl}/${reservationId}/check-out`,
+        {}
+      )
+      .pipe(
+        tap({
+          next: () => this.loading.set(false),
+          error: (err) => {
+            this.loading.set(false);
+            this.error.set(err.error?.message || 'Có lỗi xảy ra khi check-out');
+          },
+        })
+      );
+  }
+
+  updateReservation(
+    reservationId: string,
+    data: any
+  ): Observable<ApiResponse<Reservation>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    return this.http
+      .put<ApiResponse<Reservation>>(`${this.apiUrl}/${reservationId}`, data)
+      .pipe(
+        tap({
+          next: () => this.loading.set(false),
+          error: (err) => {
+            this.loading.set(false);
+            this.error.set(err.error?.message || 'Có lỗi xảy ra khi cập nhật');
           },
         })
       );

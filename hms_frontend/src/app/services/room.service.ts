@@ -3,9 +3,10 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { RoomType, RoomSearchRequest } from '../models/room-type.model';
 import { ApiResponse } from '../models/auth-response.model';
+import { RoomStatus } from '../models/room-status.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class RoomService {
   private apiUrl = 'http://localhost:8080/room/api/rooms';
@@ -20,7 +21,16 @@ export class RoomService {
     return this.http.get<ApiResponse<RoomType>>(`${this.apiUrl}/${id}`);
   }
 
-  searchRooms(searchData: RoomSearchRequest): Observable<ApiResponse<RoomType[]>> {
-    return this.http.post<ApiResponse<RoomType[]>>(`${this.apiUrl}/search`, searchData);
+  searchRooms(
+    searchData: RoomSearchRequest
+  ): Observable<ApiResponse<RoomType[]>> {
+    return this.http.post<ApiResponse<RoomType[]>>(
+      `${this.apiUrl}/search`,
+      searchData
+    );
+  }
+
+  getRoomStatuses(): Observable<ApiResponse<RoomStatus[]>> {
+    return this.http.get<ApiResponse<RoomStatus[]>>(`${this.apiUrl}/status`);
   }
 }

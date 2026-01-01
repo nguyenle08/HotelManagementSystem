@@ -20,7 +20,10 @@ public class SecurityConfig {
     http
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/reservation/api/reservations/**").hasRole("USER")
+        .requestMatchers("/reservation/api/reservations/all").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/reservation/api/reservations/*/check-in").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/reservation/api/reservations/*/check-out").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/reservation/api/reservations/**").hasAnyRole("USER", "STAFF", "ADMIN", "MANAGER")
         .anyRequest().authenticated()
       )
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

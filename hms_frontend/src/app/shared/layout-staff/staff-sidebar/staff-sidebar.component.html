@@ -8,38 +8,50 @@
 
   <nav class="sidebar-nav">
     <ul>
-      <li routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
-        <a routerLink="/staff/dashboard" [title]="isCollapsed ? 'Dashboard' : ''">
+      <li routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <a
+          routerLink="/staff/dashboard"
+          [title]="isCollapsed ? 'Dashboard' : ''"
+        >
           <i class="fa-solid fa-chart-line"></i>
           <span class="nav-text" *ngIf="!isCollapsed">Dashboard</span>
         </a>
       </li>
 
       <li routerLinkActive="active">
-        <a routerLink="/staff/reservations" [title]="isCollapsed ? 'Quản lý đặt phòng' : ''">
+        <a
+          routerLink="/staff/status"
+          [title]="isCollapsed ? 'Trạng thái phòng' : ''"
+        >
+          <i class="fa-solid fa-bed"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Trạng thái phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
+        <a
+          routerLink="/staff/reservations"
+          [title]="isCollapsed ? 'Quản lý đặt phòng' : ''"
+        >
           <i class="fa-solid fa-calendar-check"></i>
           <span class="nav-text" *ngIf="!isCollapsed">Quản lý đặt phòng</span>
         </a>
       </li>
 
       <li routerLinkActive="active">
-        <a routerLink="/staff/rooms" [title]="isCollapsed ? 'Quản lý phòng' : ''">
-          <i class="fa-solid fa-bed"></i>
-          <span class="nav-text" *ngIf="!isCollapsed">Quản lý phòng</span>
+        <a routerLink="/staff/checkin" [title]="isCollapsed ? 'Check-in' : ''">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Check-in</span>
         </a>
       </li>
 
       <li routerLinkActive="active">
-        <a routerLink="/staff/checkin" [title]="isCollapsed ? 'Check-in / Check-out' : ''">
-          <i class="fa-solid fa-clipboard-check"></i>
-          <span class="nav-text" *ngIf="!isCollapsed">Check-in / Check-out</span>
-        </a>
-      </li>
-
-      <li routerLinkActive="active">
-        <a routerLink="/staff/services" [title]="isCollapsed ? 'Dịch vụ khách hàng' : ''">
-          <i class="fa-solid fa-concierge-bell"></i>
-          <span class="nav-text" *ngIf="!isCollapsed">Dịch vụ khách hàng</span>
+        <a
+          routerLink="/staff/checkout"
+          [title]="isCollapsed ? 'Check-out' : ''"
+        >
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Check-out</span>
         </a>
       </li>
     </ul>

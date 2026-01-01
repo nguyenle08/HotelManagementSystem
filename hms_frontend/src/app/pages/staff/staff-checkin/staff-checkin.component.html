@@ -1,0 +1,152 @@
+<div class="checkin-container">
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Check-in Khách Hàng</h1>
+      <p class="subtitle">Quản lý check-in cho khách đã đặt phòng</p>
+    </div>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-section">
+    <div class="search-box">
+      <svg
+        class="search-icon"
+        width="20"
+        height="20"
+        viewBox="0 0 20 20"
+        fill="none"
+      >
+        <path
+          d="M9 17A8 8 0 1 0 9 1a8 8 0 0 0 0 16zM18 18l-4.35-4.35"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="onSearchChange()"
+        placeholder="Tìm kiếm theo mã booking, tên khách, phòng..."
+      />
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-icon pending">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Chờ check-in</div>
+        <div class="stat-value">{{ filteredReservations().length }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon today">
+        <i class="fa-solid fa-calendar-day"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Check-in hôm nay</div>
+        <div class="stat-value">{{ todayCheckIns }}</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon late">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Quá hạn</div>
+        <div class="stat-value">{{ pastDueCheckIns }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Đang tải thông tin...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage() && !loading()" class="error-state">
+    <p>{{ errorMessage() }}</p>
+  </div>
+
+  <!-- Initial Empty State -->
+  <div
+    *ngIf="!loading() && !errorMessage() && filteredReservations().length === 0"
+    class="initial-empty-state"
+  >
+    <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
+        fill="currentColor"
+        opacity="0.3"
+      />
+    </svg>
+    <h3>Chưa có booking cần check-in</h3>
+    <p>Danh sách booking đã xác nhận sẽ hiển thị tại đây</p>
+  </div>
+
+  <!-- Reservations Table -->
+  <div *ngIf="!loading() && !errorMessage()" class="table-container">
+    <table class="reservations-table">
+      <thead>
+        <tr>
+          <th>MÃ BOOKING</th>
+          <th>KHÁCH HÀNG</th>
+          <th>PHÒNG</th>
+          <th>CHECK-IN</th>
+          <th>CHECK-OUT</th>
+          <th>SỐ KHÁCH</th>
+          <th>TỔNG TIỀN</th>
+          <th>THAO TÁC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let reservation of filteredReservations()">
+          <td class="booking-code">{{ reservation.reservationCode }}</td>
+          <td>
+            <div class="guest-info">
+              <div class="guest-name">
+                {{ reservation.guestFullName || "Khách hàng" }}
+              </div>
+              <div class="guest-phone">
+                {{ reservation.guestPhoneNumber || "N/A" }}
+              </div>
+            </div>
+          </td>
+          <td>{{ reservation.roomTypeName }}</td>
+          <td>{{ formatDate(reservation.checkInDate) }}</td>
+          <td>{{ formatDate(reservation.checkOutDate) }}</td>
+          <td>{{ reservation.numAdults }} người lớn</td>
+          <td class="amount">{{ formatVND(reservation.totalAmount) }}</td>
+          <td>
+            <button
+              class="action-btn checkin-btn"
+              (click)="performCheckIn(reservation)"
+              [disabled]="loading()"
+            >
+              Check-in
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredReservations().length === 0" class="empty-state">
+      <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"
+          fill="currentColor"
+          opacity="0.3"
+        />
+      </svg>
+      <h3>Không có booking cần check-in</h3>
+      <p>Chưa có booking nào đang chờ check-in</p>
+    </div>
+  </div>
+</div>

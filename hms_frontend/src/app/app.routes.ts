@@ -63,7 +63,7 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',
@@ -83,13 +83,41 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./pages/staff/staff-dashboard.component').then(
-            (m) => m.StaffDashboardComponent
+          import(
+            './pages/staff/staff-dashboard/staff-dashboard.component'
+          ).then((m) => m.StaffDashboardComponent),
+      },
+      {
+        path: 'status',
+        loadComponent: () =>
+          import(
+            './pages/staff/staff-status-reservation/staff-status-reservation.component'
+          ).then((m) => m.StaffStatusReservationComponent),
+      },
+      {
+        path: 'reservations',
+        loadComponent: () =>
+          import(
+            './pages/staff/staff-reservation-list/staff-reservation-list.component'
+          ).then((m) => m.StaffReservationListComponent),
+      },
+      {
+        path: 'checkin',
+        loadComponent: () =>
+          import('./pages/staff/staff-checkin/staff-checkin.component').then(
+            (m) => m.StaffCheckinComponent
+          ),
+      },
+      {
+        path: 'checkout',
+        loadComponent: () =>
+          import('./pages/staff/staff-checkout/staff-checkout.component').then(
+            (m) => m.StaffCheckoutComponent
           ),
       },
     ],
@@ -103,7 +131,7 @@ export const routes: Routes = [
       {
         path: '',
         redirectTo: 'dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',

@@ -55,6 +55,19 @@ public class ReservationController {
     }
   }
 
+  @GetMapping("/all")
+  public ResponseEntity<ApiResponse<List<ReservationResponse>>> getAllReservations(
+    Authentication authentication) {
+    try {
+      // Có thể thêm check role STAFF/ADMIN ở đây nếu cần
+      List<ReservationResponse> reservations = reservationService.getAllReservations();
+      return ResponseEntity.ok(new ApiResponse<>(true, "Lấy tất cả đặt phòng thành công", reservations));
+    } catch (Exception e) {
+      return ResponseEntity.badRequest()
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    }
+  }
+
   @GetMapping("/{reservationId}")
   public ResponseEntity<ApiResponse<ReservationDetailResponse>> getReservationDetail(
     @PathVariable String reservationId,
@@ -102,5 +115,48 @@ public class ReservationController {
     }
   }
 
-}
+  @PutMapping("/{reservationId}/check-in")
+  public ResponseEntity<ApiResponse<ReservationResponse>> checkInReservation(
+    @PathVariable String reservationId,
+    Authentication authentication
+  ) {
+    try {
+      ReservationResponse reservation = reservationService.checkInReservation(reservationId);
+      return ResponseEntity.ok(
+        new ApiResponse<>(true, "Check-in thành công", reservation)
+      );
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    }
+  }
 
+  @PutMapping("/{reservationId}/check-out")
+  public ResponseEntity<ApiResponse<ReservationResponse>> checkOutReservation(
+    @PathVariable String reservationId,
+    Authentication authentication
+  ) {
+    try {
+      ReservationResponse reservation = reservationService.checkOutReservation(reservationId);
+      return ResponseEntity.ok(
+        new ApiResponse<>(true, "Check-out thành công", reservation)
+      );
+    } catch (IllegalStateException e) {
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    } catch (IllegalArgumentException e) {
+      return ResponseEntity.status(HttpStatus.NOT_FOUND)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    }
+  }
+
+}

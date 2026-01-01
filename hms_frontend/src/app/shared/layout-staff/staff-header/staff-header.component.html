@@ -3,9 +3,14 @@
     <button class="toggle-btn" (click)="onToggleSidebar()">
       <i class="fa-solid fa-bars"></i>
     </button>
-    
-    <div class="header-title-section">
-      <h1 class="header-title">Staff Dashboard</h1>
+
+    <div
+      class="header-title-section"
+      style="cursor: pointer"
+      (click)="goToDashboard()"
+    >
+      <h1 class="header-title">Hotel Management</h1>
+      <p class="header-subtitle">Staff Dashboard</p>
     </div>
   </div>
 
@@ -18,14 +23,21 @@
     <!-- USER MENU -->
     <div class="user-menu-wrapper">
       <div class="user-menu" (click)="toggleUserDropdown()">
-        <span class="user-name">{{ currentUser?.fullName || currentUser?.username || 'Staff' }}</span>
-        <i class="fa-solid fa-chevron-down" [class.rotate]="showUserDropdown"></i>
+        <span class="user-name">{{
+          currentUser?.fullName || currentUser?.username || "Staff"
+        }}</span>
+        <i
+          class="fa-solid fa-chevron-down"
+          [class.rotate]="showUserDropdown"
+        ></i>
       </div>
 
       <div class="dropdown-menu" *ngIf="showUserDropdown">
         <div class="dropdown-header">
-          <p class="dropdown-name">{{ currentUser?.fullName || currentUser?.username || 'Staff User' }}</p>
-          <p class="dropdown-role">{{ currentUser?.role || 'STAFF' }}</p>
+          <p class="dropdown-name">
+            {{ currentUser?.fullName || currentUser?.username || "Staff User" }}
+          </p>
+          <p class="dropdown-role">{{ currentUser?.role || "STAFF" }}</p>
         </div>
 
         <div class="dropdown-divider"></div>
@@ -51,4 +63,8 @@
   </div>
 </header>
 
-<div class="dropdown-backdrop" *ngIf="showUserDropdown" (click)="showUserDropdown = false"></div>
+<div
+  class="dropdown-backdrop"
+  *ngIf="showUserDropdown"
+  (click)="showUserDropdown = false"
+></div>

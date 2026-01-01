@@ -1,0 +1,374 @@
+<div class="room-status-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Trạng thái phòng</h1>
+    <p class="subtitle">Theo dõi tình trạng các phòng trong khách sạn</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card available">
+      <div class="stat-icon">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Sẵn sàng</div>
+        <div class="stat-value">{{ availableCount }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card occupied">
+      <div class="stat-icon">
+        <i class="fa-solid fa-user"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Đang sử dụng</div>
+        <div class="stat-value">{{ occupiedCount }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card cleaning">
+      <div class="stat-icon">
+        <i class="fa-solid fa-broom"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Đang dọn dẹp</div>
+        <div class="stat-value">{{ cleaningCount }}</div>
+      </div>
+    </div>
+
+    <div class="stat-card maintenance">
+      <div class="stat-icon">
+        <i class="fa-solid fa-wrench"></i>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Bảo trì</div>
+        <div class="stat-value">{{ maintenanceCount }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floor Tabs -->
+  <div class="floor-section">
+    <div class="floor-icon">
+      <i class="fa-solid fa-building"></i>
+      <span>Chọn tầng</span>
+    </div>
+    <div class="floor-tabs">
+      <button
+        class="floor-tab"
+        [class.active]="selectedFloor() === 1"
+        (click)="filterByFloor(1)"
+      >
+        Tầng 1
+      </button>
+      <button
+        class="floor-tab"
+        [class.active]="selectedFloor() === 2"
+        (click)="filterByFloor(2)"
+      >
+        Tầng 2
+      </button>
+      <button
+        class="floor-tab"
+        [class.active]="selectedFloor() === 3"
+        (click)="filterByFloor(3)"
+      >
+        Tầng 3
+      </button>
+      <button
+        class="floor-tab"
+        [class.active]="selectedFloor() === 4"
+        (click)="filterByFloor(4)"
+      >
+        Tầng 4
+      </button>
+      <button
+        class="floor-tab"
+        [class.active]="selectedFloor() === 5"
+        (click)="filterByFloor(5)"
+      >
+        Tầng 5
+      </button>
+    </div>
+  </div>
+
+  <!-- Rooms Grid -->
+  <div class="rooms-section">
+    <div class="rooms-header">
+      <h2>Tầng {{ selectedFloor() }}</h2>
+      <span class="room-count">{{ filteredRooms().length }} phòng</span>
+    </div>
+
+    <div class="rooms-grid">
+      <div
+        *ngFor="let room of filteredRooms()"
+        class="room-card"
+        [class]="getStatusClass(room.status)"
+        (click)="viewRoomDetail(room)"
+      >
+        <div class="room-icon">
+          <i class="fa-solid fa-check" *ngIf="room.status === 'AVAILABLE'"></i>
+          <i class="fa-solid fa-user" *ngIf="room.status === 'OCCUPIED'"></i>
+          <i class="fa-solid fa-broom" *ngIf="room.status === 'CLEANING'"></i>
+          <i
+            class="fa-solid fa-wrench"
+            *ngIf="room.status === 'MAINTENANCE'"
+          ></i>
+        </div>
+
+        <div class="room-number">{{ room.roomNumber }}</div>
+        <div class="room-status-text">{{ getStatusText(room.status) }}</div>
+
+        <div
+          class="room-guest"
+          *ngIf="room.status === 'OCCUPIED' && room.guestName"
+        >
+          {{ room.guestName }}
+        </div>
+
+        <button
+          class="edit-btn"
+          (click)="openEditModal(room); $event.stopPropagation()"
+          title="Chỉnh sửa"
+        >
+          <i class="fa-solid fa-pen"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredRooms().length === 0" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4z"
+          fill="currentColor"
+          opacity="0.3"
+        />
+      </svg>
+      <p>Không có phòng nào ở tầng này</p>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay" *ngIf="showDetailModal()" (click)="closeModals()">
+    <div class="modal-content detail-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-door-open"></i>
+          <span>Phòng {{ selectedRoom()?.roomNumber }}</span>
+        </div>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedRoom()">
+        <div class="detail-row">
+          <div class="detail-item">
+            <label>Số phòng</label>
+            <span class="value">Phòng {{ selectedRoom()!.roomNumber }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Tầng</label>
+            <span class="value">Tầng {{ selectedRoom()!.floor }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-item">
+            <label>Loại phòng</label>
+            <span class="value">{{
+              selectedRoom()!.roomTypeName || "N/A"
+            }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Trạng thái</label>
+            <span
+              class="status-badge"
+              [class]="getStatusClass(selectedRoom()!.status)"
+            >
+              {{ getStatusText(selectedRoom()!.status) }}
+            </span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Thông tin khách hàng</h3>
+
+        <div class="detail-row">
+          <div class="detail-item">
+            <label>Tên khách</label>
+            <span class="value">{{ selectedRoom()!.guestName || "N/A" }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Ngày nhận phòng</label>
+            <span class="value">{{
+              selectedRoom()!.checkInDate
+                ? formatDate(selectedRoom()!.checkInDate!)
+                : "N/A"
+            }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row">
+          <div class="detail-item full-width">
+            <label>Lần đơn đặp gần đây</label>
+            <span class="value"
+              >Lần cuối:
+              {{
+                selectedRoom()!.checkInDate
+                  ? formatDate(selectedRoom()!.checkInDate!) + " 14:00"
+                  : "N/A"
+              }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Đóng</button>
+        <button
+          class="btn-primary"
+          (click)="openEditModal(selectedRoom()!); showDetailModal.set(false)"
+        >
+          Chỉnh sửa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="modal-overlay" *ngIf="showEditModal()" (click)="closeModals()">
+    <div class="modal-content edit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Chỉnh sửa phòng {{ selectedRoom()?.roomNumber }}</h2>
+        <button class="close-btn" (click)="closeModals()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="selectedRoom()">
+        <form class="edit-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Số phòng</label>
+              <input
+                type="text"
+                [value]="selectedRoom()!.roomNumber"
+                disabled
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label>Tầng</label>
+              <input
+                type="text"
+                [value]="'Tầng ' + selectedRoom()!.floor"
+                disabled
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Loại phòng</label>
+              <input
+                type="text"
+                [value]="selectedRoom()!.roomTypeName || ''"
+                disabled
+                class="form-control"
+              />
+            </div>
+            <div class="form-group">
+              <label>Trạng thái</label>
+              <select
+                [(ngModel)]="editForm.status"
+                name="status"
+                class="form-control"
+              >
+                <option value="AVAILABLE">Sẵn sàng</option>
+                <option value="OCCUPIED">Đang sử dụng</option>
+                <option value="CLEANING">Đang dọn dẹp</option>
+                <option value="MAINTENANCE">Bảo trì</option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            *ngIf="selectedRoom()!.status === 'OCCUPIED'"
+            class="booking-info"
+          >
+            <h3>Thông tin khách hàng</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tên khách</label>
+                <input
+                  type="text"
+                  [value]="selectedRoom()!.guestName"
+                  disabled
+                  class="form-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label>Ngày nhận phòng</label>
+                <input
+                  type="date"
+                  [value]="selectedRoom()!.checkInDate"
+                  disabled
+                  class="form-control"
+                />
+              </div>
+              <div class="form-group">
+                <label>Ngày trả phòng</label>
+                <input
+                  type="date"
+                  [value]="selectedRoom()!.checkOutDate"
+                  disabled
+                  class="form-control"
+                />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Lần đơn đặp gần đây</label>
+              <input
+                type="text"
+                [value]="
+                  selectedRoom()!.checkInDate
+                    ? formatDate(selectedRoom()!.checkInDate!) + ' 02:00 PM'
+                    : ''
+                "
+                disabled
+                class="form-control"
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Ghi chú</label>
+            <textarea
+              [(ngModel)]="editForm.note"
+              name="note"
+              rows="3"
+              class="form-control"
+              placeholder="Nhập ghi chú..."
+            ></textarea>
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModals()">Hủy</button>
+        <button class="btn-primary" (click)="saveRoomStatus()">
+          Lưu thay đổi
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

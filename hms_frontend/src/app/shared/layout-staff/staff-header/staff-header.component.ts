@@ -1,4 +1,11 @@
-import { Component, EventEmitter, Output, OnInit, HostListener, ElementRef } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Output,
+  OnInit,
+  HostListener,
+  ElementRef,
+} from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
@@ -8,11 +15,11 @@ import { AuthService } from '../../../services/auth.service';
   standalone: true,
   imports: [RouterModule, CommonModule],
   templateUrl: './staff-header.component.html',
-  styleUrl: './staff-header.component.css'
+  styleUrl: './staff-header.component.css',
 })
 export class StaffHeaderComponent implements OnInit {
   @Output() toggleSidebar = new EventEmitter<void>();
-  
+
   currentUser: any = null;
   showUserDropdown = false;
 
@@ -32,7 +39,7 @@ export class StaffHeaderComponent implements OnInit {
       this.currentUser = {
         username: user.username,
         fullName: user.fullname || user.username,
-        role: user.role
+        role: user.role,
       };
     }
   }
@@ -51,6 +58,10 @@ export class StaffHeaderComponent implements OnInit {
 
   toggleUserDropdown() {
     this.showUserDropdown = !this.showUserDropdown;
+  }
+
+  goToDashboard() {
+    this.router.navigate(['/staff/dashboard']);
   }
 
   goToHome() {
