@@ -1,1 +1,110 @@
-<p>staff-dashboard works!</p>
+<div class="staff-dashboard" *ngIf="!loading(); else loader">
+  <header class="page-header">
+    <h1>Staff Dashboard</h1>
+    <p class="subtitle">Tổng quan công việc hôm nay</p>
+  </header>
+
+  <div class="dashboard-grid">
+    <div class="main-column">
+      <section class="card today-board">
+        <div class="card-header">
+          <h2><i class="fa-solid fa-list-check"></i> Today Tasks</h2>
+          <span class="date">{{ today | date : "dd/MM/yyyy" }}</span>
+        </div>
+
+        <div *ngIf="todayActions().length === 0" class="empty-state">
+          🎉 Hôm nay hiện tại chưa có lịch Check-in/out
+        </div>
+
+        <div
+          class="action-row"
+          *ngFor="let action of todayActions()"
+          [class.overdue]="isOverdue(action)"
+        >
+          <div class="time">{{ formatTime(action.time) }}</div>
+          <div class="info">
+            <strong>{{ action.guestName }}</strong>
+            <span
+              >{{ action.typeLabel || action.type }} · Phòng
+              {{ action.roomNumber }}</span
+            >
+          </div>
+          <div class="action">
+            <button
+              *ngIf="action.type === 'CHECKIN'"
+              class="btn-checkin"
+              routerLink="/staff/checkin"
+            >
+              Check-in
+            </button>
+            <button
+              *ngIf="action.type === 'CHECKOUT'"
+              class="btn-checkout"
+              [routerLink]="['/staff/checkout', action.reservationId]"
+            >
+              Check-out
+            </button>
+            <span *ngIf="action.type === 'OVERDUE'" class="badge danger"
+              >⚠ Quá hạn</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <section class="card alerts" *ngIf="alerts().length > 0">
+        <h3><i class="fa-solid fa-bell"></i> Cần chú ý</h3>
+        <ul class="alert-list">
+          <li *ngFor="let alert of alerts()" class="alert-item">
+            <span class="dot"></span> {{ alert.message }}
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="side-column">
+      <section class="card snapshot">
+        <h3>Room Snapshot</h3>
+        <div class="snapshot-grid">
+          <div class="snap-card available">
+            <span class="val">{{ roomSnapshot().available }}</span>
+            <span class="lab">Sẵn sàng</span>
+          </div>
+          <div class="snap-card occupied">
+            <span class="val">{{ roomSnapshot().occupied }}</span>
+            <span class="lab">Đang ở</span>
+          </div>
+          <div class="snap-card cleaning">
+            <span class="val">{{ roomSnapshot().cleaning }}</span>
+            <span class="lab">Dọn dẹp</span>
+          </div>
+          <div class="snap-card maintenance">
+            <span class="val">{{ roomSnapshot().attention }}</span>
+            <span class="lab">Bảo trì</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card mini-summary">
+        <div class="summary-row">
+          <span>Check-in:</span>
+          <strong>{{ summary().checkInToday }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Check-out:</span>
+          <strong>{{ summary().checkOutToday }}</strong>
+        </div>
+        <div class="summary-row danger" *ngIf="overdueCount > 0">
+          <span>Quá hạn:</span>
+          <strong>{{ overdueCount }}</strong>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<ng-template #loader>
+  <div class="dashboard-loader">
+    <div class="spinner"></div>
+    <p>Đang đồng bộ dữ liệu...</p>
+  </div>
+</ng-template>

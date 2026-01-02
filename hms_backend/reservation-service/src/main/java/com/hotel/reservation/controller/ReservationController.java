@@ -1,9 +1,7 @@
 package com.hotel.reservation.controller;
 
-import com.hotel.reservation.dto.ApiResponse;
-import com.hotel.reservation.dto.CreateReservationRequest;
-import com.hotel.reservation.dto.ReservationDetailResponse;
-import com.hotel.reservation.dto.ReservationResponse;
+import com.hotel.reservation.dto.*;
+import com.hotel.reservation.dto.dashboard.DashboardResponse;
 import com.hotel.reservation.service.ReservationDetailService;
 import com.hotel.reservation.service.ReservationService;
 import lombok.RequiredArgsConstructor;
@@ -158,5 +156,17 @@ public class ReservationController {
         .body(new ApiResponse<>(false, e.getMessage(), null));
     }
   }
+
+  @GetMapping("/dashboard")
+  public ResponseEntity<ApiResponse<DashboardResponse>> getDashboard() {
+    try {
+      DashboardResponse response = reservationService.getDashboardData();
+      return ResponseEntity.ok(new ApiResponse<>(true, "Lấy dashboard thành công", response));
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(new ApiResponse<>(false, e.getMessage(), null));
+    }
+  }
+
 
 }

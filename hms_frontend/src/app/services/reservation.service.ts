@@ -7,16 +7,38 @@ import {
   Reservation,
   ApiResponse,
 } from '../models/reservation.model';
+import {
+  TodayAction,
+  RoomSnapshot,
+  AlertItem,
+  DashboardSummary,
+  DashboardResponse,
+} from '../models/dashboard.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ReservationService {
-  private apiUrl = 'http://localhost:8080/reservation/api/reservations';
+  private apiUrl = '/reservation/api/reservations';
 
   reservations = signal<Reservation[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+
+  todayActions = signal<TodayAction[]>([]);
+  roomSnapshot = signal<RoomSnapshot>({
+    available: 0,
+    occupied: 0,
+    cleaning: 0,
+    attention: 0,
+    cleaningOverdue: 0,
+  });
+  alerts = signal<AlertItem[]>([]);
+  summary = signal<DashboardSummary>({
+    checkInToday: 0,
+    checkOutToday: 0,
+    overdue: 0,
+  });
 
   constructor(private http: HttpClient) {}
 
@@ -158,6 +180,60 @@ export class ReservationService {
           error: (err) => {
             this.loading.set(false);
             this.error.set(err.error?.message || 'Có lỗi xảy ra khi cập nhật');
+          },
+        })
+      );
+  }
+  getDashboardData(): Observable<ApiResponse<DashboardResponse>> {
+    this.loading.set(true);
+    this.error.set(null);
+
+    // Đổi kiểu trả về thành ApiResponse để bọc dữ liệu chuẩn
+    return this.http
+      .get<ApiResponse<DashboardResponse>>(`${this.apiUrl}/dashboard`)
+      .pipe(
+        tap({
+          next: (response) => {
+            // Kiểm tra nếu có data từ ApiResponse
+            const res = response.data;
+
+            if (res) {
+              // map typeLabel cho todayActions
+              const mappedActions = (res.todayActions || []).map((a) => ({
+                ...a,
+                typeLabel:
+                  a.type === 'CHECKIN'
+                    ? 'Check-in'
+                    : a.type === 'CHECKOUT'
+                    ? 'Check-out'
+                    : 'Quá hạn',
+              }));
+
+              // Cập nhật các signals trong service
+              this.todayActions.set(mappedActions);
+
+              this.roomSnapshot.set({
+                available: res.roomSnapshot?.available ?? 0,
+                occupied: res.roomSnapshot?.occupied ?? 0,
+                cleaning: res.roomSnapshot?.cleaning ?? 0,
+                attention: res.roomSnapshot?.attention ?? 0,
+                cleaningOverdue: res.roomSnapshot?.cleaningOverdue ?? 0,
+              });
+
+              this.alerts.set(res.alerts || []);
+
+              this.summary.set({
+                checkInToday: res.summary?.checkInToday ?? 0,
+                checkOutToday: res.summary?.checkOutToday ?? 0,
+                overdue: res.summary?.overdue ?? 0,
+              });
+            }
+
+            this.loading.set(false);
+          },
+          error: (err) => {
+            this.loading.set(false);
+            this.error.set(err.error?.message || 'Không tải được dashboard');
           },
         })
       );
