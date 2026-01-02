@@ -1,0 +1,213 @@
+<div class="report-page">
+	<div class="report-header">
+		<div>
+			<h1>Báo cáo và thống kê</h1>
+			<p class="subtitle">Tổng quan hiệu suất hoạt động của khách sạn</p>
+		</div>
+
+		<div class="filters">
+			<label>Khoảng thời gian:</label>
+			<select [(ngModel)]="range" (change)="onRangeChange()">
+				<option value="7">7 ngày qua</option>
+				<option value="30">30 ngày qua</option>
+				<option value="90">3 tháng gần đây</option>
+				<option value="365">1 năm gần đây</option>
+			</select>
+		</div>
+	</div>
+
+	<div *ngIf="errorMessage" class="alert alert-error">
+		{{ errorMessage }}
+	</div>
+
+	<div *ngIf="isLoading" class="loading-overlay">
+		<div class="spinner"></div>
+	</div>
+
+	<div class="summary-grid" *ngIf="!isLoading">
+		<div class="summary-card primary">
+			<div class="summary-title">Tổng số đặt phòng</div>
+			<div class="summary-value">{{ totalBookings }}</div>
+			<div class="summary-footer">Trong khoảng thời gian đã chọn</div>
+		</div>
+
+		<div class="summary-card success">
+			<div class="summary-title">Doanh thu</div>
+			<div class="summary-value">{{ formatCurrency(totalRevenue) }}</div>
+			<div class="summary-footer">Chỉ tính các đơn đã xác nhận và lưu trú</div>
+		</div>
+
+		<div class="summary-card warning">
+			<div class="summary-title">Tỷ lệ lấp đầy</div>
+			<div class="summary-value">{{ formatPercent(occupancyRate) }}</div>
+			<div class="summary-footer">Dựa trên số phòng đang hoạt động</div>
+		</div>
+
+		<div class="summary-card info">
+			<div class="summary-title">Điểm đánh giá trung bình</div>
+			<div class="summary-value">{{ averageRating | number: '1.1-1' }}/5</div>
+			<div class="summary-footer">Giá trị mẫu (có thể thay bằng đánh giá thực)</div>
+		</div>
+	</div>
+
+	<div class="content-grid" *ngIf="!isLoading">
+		<div class="panel full-width">
+			<div class="panel-header">
+				<div>
+					<h2>Thống kê tổng quan theo tháng</h2>
+					<p class="panel-subtitle">Số lượng đặt phòng và doanh thu từng tháng</p>
+				</div>
+			</div>
+
+			<div class="charts-row">
+				<div class="chart-card">
+					<div class="chart-title">Số lượng đặt phòng theo tháng</div>
+					<div class="chart-body">
+						<div class="chart-row" *ngFor="let value of bookingsPerMonth; index as i">
+							<div class="chart-label">Th {{ i + 1 }}</div>
+							<div class="chart-bar-wrapper">
+								<div
+									class="chart-bar primary"
+									[style.width.%]="(value / maxBookings) * 100 || 0"
+								></div>
+							</div>
+							<div class="chart-value">{{ value }}</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="chart-card">
+					<div class="chart-title">Doanh thu theo tháng</div>
+					<div class="chart-body">
+						<div class="chart-row" *ngFor="let value of revenuePerMonth; index as i">
+							<div class="chart-label">Th {{ i + 1 }}</div>
+							<div class="chart-bar-wrapper">
+								<div
+									class="chart-bar success"
+									[style.width.%]="(value / maxRevenue) * 100 || 0"
+								></div>
+							</div>
+							<div class="chart-value">{{ formatCurrency(value) }}</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="panel">
+			<div class="panel-header">
+				<div>
+					<h2>Thống kê theo loại phòng</h2>
+					<p class="panel-subtitle">Hiệu suất và doanh thu từng loại phòng</p>
+				</div>
+			</div>
+
+			<div class="table-wrapper" *ngIf="roomTypeStats.length; else noTypeStats">
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>Loại phòng</th>
+							<th>Số đặt phòng</th>
+							<th>Doanh thu</th>
+							<th>Tỷ lệ lấp đầy</th>
+							<th>Hiệu suất</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr *ngFor="let stat of roomTypeStats">
+							<td>{{ stat.roomTypeName }}</td>
+							<td>{{ stat.bookings }}</td>
+							<td>{{ formatCurrency(stat.revenue) }}</td>
+							<td>
+								<div class="occupancy-bar">
+									<div
+										class="occupancy-fill"
+										[style.width.%]="stat.occupancyRate * 100 || 0"
+									></div>
+								</div>
+								<span class="occupancy-text">
+									{{ formatPercent(stat.occupancyRate) }}
+								</span>
+							</td>
+							<td>
+								<span
+									class="badge"
+									[ngClass]="{
+										'badge-success': stat.performance === 'Xuất sắc',
+										'badge-warning': stat.performance === 'Tốt',
+										'badge-muted': stat.performance === 'Trung bình'
+									}"
+								>
+									{{ stat.performance }}
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<ng-template #noTypeStats>
+				<div class="empty-state">
+					Chưa có dữ liệu đặt phòng trong khoảng thời gian đã chọn.
+				</div>
+			</ng-template>
+		</div>
+
+		<div class="panel">
+			<div class="panel-header">
+				<div>
+					<h2>Đặt phòng gần đây</h2>
+					<p class="panel-subtitle">
+						Danh sách các đơn đặt phòng mới nhất trong khoảng thời gian đã chọn
+					</p>
+				</div>
+			</div>
+
+			<div class="table-wrapper" *ngIf="filteredReservations.length; else noRecent">
+				<table class="data-table">
+					<thead>
+						<tr>
+							<th>Mã đặt phòng</th>
+							<th>Khách hàng</th>
+							<th>Loại phòng</th>
+							<th>Check-in</th>
+							<th>Check-out</th>
+							<th>Tổng tiền</th>
+							<th>Trạng thái</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr
+							*ngFor="let r of filteredReservations | slice: 0:10"
+						>
+							  <td>{{ r.reservationCode || r.reservationId }}</td>
+							  <td>{{ r.guestFullName || 'Khách' }}</td>
+							<td>{{ r.roomTypeName }}</td>
+							<td>{{ r.checkInDate | date: 'dd/MM/yyyy' }}</td>
+							<td>{{ r.checkOutDate | date: 'dd/MM/yyyy' }}</td>
+							<td>{{ formatCurrency(r.totalAmount || 0) }}</td>
+							<td>
+								<span
+									class="badge"
+									[ngClass]="{
+										'badge-success': r.status === 'CHECKED_IN' || r.status === 'CHECKED_OUT',
+										'badge-primary': r.status === 'CONFIRMED',
+										'badge-error': r.status === 'CANCELLED' || r.status === 'NO_SHOW'
+									}"
+								>
+									{{ r.status }}
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<ng-template #noRecent>
+				<div class="empty-state">
+					Không có đặt phòng nào trong khoảng thời gian này.
+				</div>
+			</ng-template>
+		</div>
+	</div>
+</div>

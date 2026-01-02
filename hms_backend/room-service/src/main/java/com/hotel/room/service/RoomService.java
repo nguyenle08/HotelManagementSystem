@@ -2,6 +2,7 @@ package com.hotel.room.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotel.room.dto.RoomRequest;
 import com.hotel.room.dto.RoomSearchRequest;
 import com.hotel.room.dto.RoomStatusResponse;
 import com.hotel.room.dto.RoomTypeResponse;
@@ -42,25 +43,64 @@ public class RoomService {
     }
   }
 
+  private RoomStatusResponse mapRoomStatus(Room room, List<RoomType> roomTypes) {
+    RoomStatusResponse resp = new RoomStatusResponse();
+    resp.setRoomId(room.getRoomId());
+    resp.setRoomNumber(room.getRoomNumber());
+    resp.setFloor(room.getFloor());
+    resp.setStatus(room.getStatus());
+    resp.setRoomTypeId(room.getRoomTypeId());
+
+    roomTypes.stream()
+      .filter(rt -> rt.getRoomTypeId().equals(room.getRoomTypeId()))
+      .findFirst()
+      .ifPresent(rt -> resp.setRoomTypeName(rt.getName()));
+
+    return resp;
+  }
+
   public List<RoomStatusResponse> getAllRoomsWithStatus() {
     List<Room> rooms = roomRepository.findAll();
     List<RoomType> roomTypes = roomTypeRepository.findAll();
 
-    return rooms.stream().map(r -> {
-      RoomStatusResponse resp = new RoomStatusResponse();
-      resp.setRoomId(r.getRoomId());
-      resp.setRoomNumber(r.getRoomNumber());
-      resp.setFloor(r.getFloor());
-      resp.setStatus(r.getStatus());
-      resp.setRoomTypeId(r.getRoomTypeId());
+    return rooms.stream()
+      .map(r -> mapRoomStatus(r, roomTypes))
+      .collect(Collectors.toList());
+  }
 
-      roomTypes.stream()
-        .filter(rt -> rt.getRoomTypeId().equals(r.getRoomTypeId()))
-        .findFirst()
-        .ifPresent(rt -> resp.setRoomTypeName(rt.getName()));
+  public RoomStatusResponse createRoom(RoomRequest request) {
+    RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-      return resp;
-    }).collect(Collectors.toList());
+    Room room = new Room();
+    room.setRoomId(UUID.randomUUID().toString());
+    room.setRoomNumber(request.getRoomNumber());
+    room.setFloor(request.getFloor());
+    room.setStatus(request.getStatus());
+    room.setRoomTypeId(roomType.getRoomTypeId());
+
+    Room saved = roomRepository.save(room);
+    return mapRoomStatus(saved, List.of(roomType));
+  }
+
+  public RoomStatusResponse updateRoom(String roomId, RoomRequest request) {
+    Room room = roomRepository.findById(roomId)
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
+
+    RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
+
+    room.setRoomNumber(request.getRoomNumber());
+    room.setFloor(request.getFloor());
+    room.setStatus(request.getStatus());
+    room.setRoomTypeId(roomType.getRoomTypeId());
+
+    Room saved = roomRepository.save(room);
+    return mapRoomStatus(saved, List.of(roomType));
+  }
+
+  public void deleteRoom(String roomId) {
+    roomRepository.deleteById(roomId);
   }
 
   public List<RoomTypeResponse> getAllRoomTypes() {
@@ -74,7 +114,7 @@ public class RoomService {
       response.setBasePrice(rt.getBasePrice());
       response.setMaxGuests(rt.getMaxGuests());
       response.setBedType(rt.getBedType());
-      response.setSizeSqm(rt.getSizeSqm());
+      response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
       response.setAmenities(parseJsonList(rt.getAmenities()));
       response.setImages(parseJsonList(rt.getImages()));
       response.setIsActive(rt.getIsActive());
@@ -98,7 +138,7 @@ public class RoomService {
     response.setBasePrice(rt.getBasePrice());
     response.setMaxGuests(rt.getMaxGuests());
     response.setBedType(rt.getBedType());
-    response.setSizeSqm(rt.getSizeSqm());
+    response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
     response.setAmenities(parseJsonList(rt.getAmenities()));
     response.setImages(parseJsonList(rt.getImages()));
     response.setIsActive(rt.getIsActive());
@@ -137,7 +177,7 @@ public class RoomService {
         response.setBasePrice(rt.getBasePrice());
         response.setMaxGuests(rt.getMaxGuests());
         response.setBedType(rt.getBedType());
-        response.setSizeSqm(rt.getSizeSqm());
+        response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
         response.setAmenities(parseJsonList(rt.getAmenities()));
         response.setImages(parseJsonList(rt.getImages()));
         response.setIsActive(rt.getIsActive());

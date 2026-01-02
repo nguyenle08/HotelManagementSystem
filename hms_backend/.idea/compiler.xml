@@ -29,7 +29,7 @@
         <module name="notification-service" />
         <module name="payment-service" />
       </profile>
-      <profile name="Annotation profile for reservation-service" enabled="true">
+      <profile name="Annotation profile for room-service" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />

@@ -1,0 +1,249 @@
+<div class="manager-room-container">
+	<div class="summary-cards">
+		<div class="summary-card">
+			<div class="summary-label">Tổng phòng</div>
+			<div class="summary-value">{{ totalRooms }}</div>
+		</div>
+		<div class="summary-card">
+			<div class="summary-label">Trống</div>
+			<div class="summary-value text-green">{{ activeRooms }}</div>
+		</div>
+		<div class="summary-card">
+			<div class="summary-label">Bảo trì</div>
+			<div class="summary-value text-amber">{{ maintenanceRooms }}</div>
+		</div>
+		<div class="summary-card">
+			<div class="summary-label">Ngừng sử dụng</div>
+			<div class="summary-value text-red">{{ decommissionedRooms }}</div>
+		</div>
+		<button class="btn-add-room" (click)="openAddModal()">+ Thêm phòng</button>
+	</div>
+
+	<div class="filter-bar">
+		<input
+			type="text"
+			class="filter-input"
+			placeholder="Tìm kiếm theo số phòng hoặc loại phòng..."
+			[(ngModel)]="searchTerm"
+			(input)="applyFilter()"
+		/>
+
+		<select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilter()">
+			<option value="ALL">Tất cả trạng thái</option>
+			<option value="ACTIVE">Trống</option>
+			<option value="MAINTENANCE">Bảo trì</option>
+			<option value="DECOMMISSIONED">Ngừng sử dụng</option>
+		</select>
+	</div>
+
+	<div *ngIf="isLoading" class="loading-state">
+		<div class="spinner"></div>
+		<p>Đang tải danh sách phòng...</p>
+	</div>
+
+	<div class="alert-container">
+		<div *ngIf="successMessage" class="alert alert-success alert-popup">
+			{{ successMessage }}
+		</div>
+		<div *ngIf="errorMessage" class="alert alert-error alert-popup">
+			{{ errorMessage }}
+		</div>
+	</div>
+
+	<div *ngIf="!isLoading && filteredRooms.length" class="table-wrapper">
+		<table class="room-table">
+			<thead>
+				<tr>
+					<th>Số phòng</th>
+					<th>Tầng</th>
+					<th>Loại phòng</th>
+					<th>Trạng thái</th>
+					<th>Thao tác</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let room of filteredRooms">
+					<td>{{ room.roomNumber }}</td>
+					<td>Tầng {{ room.floor }}</td>
+					<td>{{ room.roomTypeName || getRoomTypeName(room.roomTypeId) }}</td>
+					<td>
+						<span
+							class="status-badge"
+							[ngClass]="{
+								'status-active': room.status === 'ACTIVE',
+								'status-maintenance': room.status === 'MAINTENANCE',
+								'status-decommissioned': room.status === 'DECOMMISSIONED'
+							}"
+						>
+							{{ getStatusLabel(room.status) }}
+						</span>
+					</td>
+					<td>
+						<button class="btn-small" (click)="openEditModal(room)">Sửa</button>
+						<button class="btn-small btn-danger" (click)="openDeleteConfirm(room)">
+							Xóa
+						</button>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div *ngIf="!isLoading && !filteredRooms.length" class="empty-state">
+		<p>Chưa có phòng nào. Hãy thêm phòng mới.</p>
+	</div>
+
+	<!-- Add Modal -->
+	<div *ngIf="showAddModal" class="modal-overlay" (click)="closeAddModal()">
+		<div class="modal-content" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h3>Thêm phòng</h3>
+				<button class="btn-close" (click)="closeAddModal()">×</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-row">
+					<div class="form-group">
+						<label>Số phòng</label>
+						<input
+							type="text"
+							class="form-control"
+							[(ngModel)]="roomForm.roomNumber"
+						/>
+					</div>
+					<div class="form-group">
+						<label>Tầng</label>
+						<input
+							type="number"
+							class="form-control"
+							[(ngModel)]="roomForm.floor"
+							min="1"
+						/>
+					</div>
+				</div>
+
+				<div class="form-row">
+					<div class="form-group">
+						<label>Loại phòng</label>
+						<select
+							class="form-control"
+							[(ngModel)]="roomForm.roomTypeId"
+						>
+							<option *ngFor="let rt of roomTypes" [value]="rt.roomTypeId">
+								{{ rt.name }}
+							</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Trạng thái</label>
+						<select
+							class="form-control"
+							[(ngModel)]="roomForm.status"
+						>
+							<option value="ACTIVE">Trống</option>
+							<option value="MAINTENANCE">Bảo trì</option>
+							<option value="DECOMMISSIONED">Ngừng sử dụng</option>
+						</select>
+					</div>
+				</div>
+
+				<div *ngIf="errorMessage" class="alert alert-error">
+					{{ errorMessage }}
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+				<button class="btn-primary" (click)="submitAdd()" [disabled]="isLoading">
+					{{ isLoading ? 'Đang lưu...' : 'Lưu' }}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Edit Modal -->
+	<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+		<div class="modal-content" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h3>Chỉnh sửa phòng</h3>
+				<button class="btn-close" (click)="closeEditModal()">×</button>
+			</div>
+			<div class="modal-body">
+				<div class="form-row">
+					<div class="form-group">
+						<label>Số phòng</label>
+						<input
+							type="text"
+							class="form-control"
+							[(ngModel)]="roomForm.roomNumber"
+						/>
+					</div>
+					<div class="form-group">
+						<label>Tầng</label>
+						<input
+							type="number"
+							class="form-control"
+							[(ngModel)]="roomForm.floor"
+							min="1"
+						/>
+					</div>
+				</div>
+
+				<div class="form-row">
+					<div class="form-group">
+						<label>Loại phòng</label>
+						<select
+							class="form-control"
+							[(ngModel)]="roomForm.roomTypeId"
+						>
+							<option *ngFor="let rt of roomTypes" [value]="rt.roomTypeId">
+								{{ rt.name }}
+							</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<label>Trạng thái</label>
+						<select
+							class="form-control"
+							[(ngModel)]="roomForm.status"
+						>
+							<option value="ACTIVE">Trống</option>
+							<option value="MAINTENANCE">Bảo trì</option>
+							<option value="DECOMMISSIONED">Ngừng sử dụng</option>
+						</select>
+					</div>
+				</div>
+
+				<div *ngIf="errorMessage" class="alert alert-error">
+					{{ errorMessage }}
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button class="btn-secondary" (click)="closeEditModal()">Hủy</button>
+				<button class="btn-primary" (click)="submitEdit()" [disabled]="isLoading">
+					{{ isLoading ? 'Đang lưu...' : 'Lưu thay đổi' }}
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- Delete Modal -->
+	<div *ngIf="showDeleteConfirm" class="modal-overlay" (click)="closeDeleteConfirm()">
+		<div class="modal-content modal-small" (click)="$event.stopPropagation()">
+			<div class="modal-header">
+				<h3>Xóa phòng</h3>
+				<button class="btn-close" (click)="closeDeleteConfirm()">×</button>
+			</div>
+			<div class="modal-body">
+				<p>
+					Bạn có chắc muốn xóa phòng
+					<strong>{{ selectedRoom?.roomNumber }}</strong>?
+				</p>
+			</div>
+			<div class="modal-footer">
+				<button class="btn-secondary" (click)="closeDeleteConfirm()">Hủy</button>
+				<button class="btn-danger" (click)="confirmDelete()" [disabled]="isLoading">
+					{{ isLoading ? 'Đang xóa...' : 'Xóa' }}
+				</button>
+			</div>
+		</div>
+	</div>
+</div>

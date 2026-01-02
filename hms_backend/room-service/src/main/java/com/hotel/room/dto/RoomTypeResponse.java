@@ -12,9 +12,10 @@ public class RoomTypeResponse {
     private BigDecimal basePrice;
     private Integer maxGuests;
     private String bedType;
-    private BigDecimal sizeSqm;
+    private Double sizeSqm;
     private List<String> amenities;
     private List<String> images;
     private Boolean isActive;
+    private Integer totalRooms;
     private Integer availableRooms;
 }

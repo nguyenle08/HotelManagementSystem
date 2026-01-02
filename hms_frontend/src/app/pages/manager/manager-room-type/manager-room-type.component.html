@@ -1,0 +1,447 @@
+<div class="manager-room-type-container">
+  <div class="page-header">
+    <div class="page-title-section">
+      <h2 class="page-title">Quản lý loại phòng</h2>
+      <p class="page-subtitle">Thêm, sửa, xóa các loại phòng và cập nhật giá</p>
+    </div>
+    <button class="btn-add" (click)="openAddModal()">
+      <span class="btn-icon">+</span>
+      Thêm loại phòng
+    </button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="search-section">
+    <div class="search-box">
+      <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"></circle>
+        <path d="m21 21-4.35-4.35"></path>
+      </svg>
+      <input 
+        type="text" 
+        class="search-input" 
+        placeholder="Tìm kiếm theo tên hoặc mô tả..."
+        [(ngModel)]="searchTerm"
+        (input)="searchRoomTypes()"
+      />
+    </div>
+  </div>
+
+  <!-- Success/Error Toasts -->
+  <div class="alert-container">
+    <div *ngIf="successMessage" class="alert alert-success alert-popup">
+      {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-error alert-popup">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Đang tải...</p>
+  </div>
+
+  <!-- Room Types Grid -->
+  <div *ngIf="!isLoading" class="room-types-grid">
+      <div *ngFor="let roomType of filteredRoomTypes" class="room-type-card">
+        <div class="card-image">
+          <img [src]="getDefaultImage(roomType)" [alt]="roomType.name" />
+          <div class="price-badge">{{ formatPrice(roomType.basePrice) }}/đêm</div>
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">{{ roomType.name }}</h3>
+          <p class="card-description">{{ roomType.description }}</p>
+          
+          <div class="card-info">
+            <div class="info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span>{{ roomType.maxGuests }} người</span>
+            </div>
+            <div class="info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              <span>{{ roomType.totalRooms || 0 }} phòng</span>
+            </div>
+            <div class="info-item">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              <span>{{ roomType.availableRooms || 0 }} trống</span>
+            </div>
+          </div>
+
+          <div class="amenities-tags" *ngIf="roomType.amenities && roomType.amenities.length > 0">
+            <span *ngFor="let amenity of roomType.amenities.slice(0, 4)" class="amenity-tag">
+              {{ amenity }}
+            </span>
+            <span *ngIf="roomType.amenities.length > 4" class="amenity-tag more">
+              +{{ roomType.amenities.length - 4 }}
+            </span>
+          </div>
+
+          <div class="card-actions">
+            <button class="btn-secondary" (click)="openDetailModal(roomType)">Chi tiết</button>
+            <button class="btn-primary" (click)="openEditModal(roomType)">Sửa</button>
+            <button class="btn-danger" (click)="openDeleteConfirm(roomType)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredRoomTypes.length === 0" class="empty-state">
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+      <polyline points="9 22 9 12 15 12 15 22"></polyline>
+    </svg>
+    <h3>Không tìm thấy loại phòng nào</h3>
+    <p>Hãy thêm loại phòng mới để bắt đầu</p>
+  </div>
+
+  <!-- Add Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm loại phòng mới</h3>
+        <button class="btn-close" (click)="closeAddModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Tên loại phòng</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="roomTypeForm.name"
+            placeholder="Ví dụ: Deluxe Double"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea 
+            class="form-control" 
+            rows="3"
+            [(ngModel)]="roomTypeForm.description"
+            placeholder="Phòng cao cấp với giường đôi lớn và không gian rộng rãi hơn"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sức chứa</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.maxGuests"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Giá/đêm (VND)</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.basePrice"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loại giường</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.bedType"
+              placeholder="Ví dụ: King, Queen, Twin"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Diện tích (m²)</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.sizeSqm"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiện nghi</label>
+          <div class="amenities-grid">
+            <label *ngFor="let amenity of availableAmenities" class="amenity-checkbox">
+              <input 
+                type="checkbox" 
+                [checked]="isAmenitySelected(amenity)"
+                (change)="toggleAmenity(amenity)"
+              />
+              <span>{{ amenity }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ảnh phòng</label>
+          <div class="image-input-row">
+            <input 
+              type="file" 
+              class="form-control" 
+              accept="image/*"
+              (change)="onImageSelected($event)"
+            />
+            <span *ngIf="isUploadingImage" class="uploading-text">Đang upload...</span>
+          </div>
+          <div *ngIf="imageUploadError" class="alert alert-error" style="margin-top: 0.5rem;">
+            {{ imageUploadError }}
+          </div>
+          <div class="image-preview-list" *ngIf="roomTypeForm.images && roomTypeForm.images.length">
+            <div class="image-preview-item" *ngFor="let img of roomTypeForm.images; let i = index">
+              <img [src]="img" [alt]="'Ảnh phòng ' + (i + 1)" />
+              <button type="button" class="btn-danger btn-remove-image" (click)="removeImage(i)">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-error">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeAddModal()">Hủy</button>
+        <button class="btn-primary" (click)="submitAdd()" [disabled]="isLoading">
+          {{ isLoading ? 'Đang xử lý...' : 'Thêm loại phòng' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Chỉnh sửa loại phòng</h3>
+        <button class="btn-close" (click)="closeEditModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Tên loại phòng</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            [(ngModel)]="roomTypeForm.name"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Mô tả</label>
+          <textarea 
+            class="form-control" 
+            rows="3"
+            [(ngModel)]="roomTypeForm.description"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Sức chứa</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.maxGuests"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Giá/đêm (VND)</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.basePrice"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Loại giường</label>
+            <input 
+              type="text" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.bedType"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Diện tích (m²)</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [(ngModel)]="roomTypeForm.sizeSqm"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div *ngIf="selectedRoomType" class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tổng số phòng</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [value]="selectedRoomType.totalRooms || 0"
+              readonly
+              disabled
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phòng trống</label>
+            <input 
+              type="number" 
+              class="form-control" 
+              [value]="selectedRoomType.availableRooms || 0"
+              readonly
+              disabled
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tiện nghi</label>
+          <div class="amenities-grid">
+            <label *ngFor="let amenity of availableAmenities" class="amenity-checkbox">
+              <input 
+                type="checkbox" 
+                [checked]="isAmenitySelected(amenity)"
+                (change)="toggleAmenity(amenity)"
+              />
+              <span>{{ amenity }}</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ảnh phòng</label>
+          <div class="image-input-row">
+            <input 
+              type="file" 
+              class="form-control" 
+              accept="image/*"
+              (change)="onImageSelected($event)"
+            />
+            <span *ngIf="isUploadingImage" class="uploading-text">Đang upload...</span>
+          </div>
+          <div *ngIf="imageUploadError" class="alert alert-error" style="margin-top: 0.5rem;">
+            {{ imageUploadError }}
+          </div>
+          <div class="image-preview-list" *ngIf="roomTypeForm.images && roomTypeForm.images.length">
+            <div class="image-preview-item" *ngFor="let img of roomTypeForm.images; let i = index">
+              <img [src]="img" [alt]="'Ảnh phòng ' + (i + 1)" />
+              <button type="button" class="btn-danger btn-remove-image" (click)="removeImage(i)">×</button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="errorMessage" class="alert alert-error">
+          {{ errorMessage }}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeEditModal()">Hủy</button>
+        <button class="btn-primary" (click)="submitEdit()" [disabled]="isLoading">
+          {{ isLoading ? 'Đang xử lý...' : 'Lưu thay đổi' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div *ngIf="showDetailModal && selectedRoomType" class="modal-overlay" (click)="closeDetailModal()">
+    <div class="modal-content modal-detail" (click)="$event.stopPropagation()">
+      <div class="detail-image">
+        <img [src]="getDefaultImage(selectedRoomType)" [alt]="selectedRoomType.name" />
+        <button class="btn-close-absolute" (click)="closeDetailModal()">×</button>
+      </div>
+      <div class="detail-content">
+        <h2 class="detail-title">{{ selectedRoomType.name }}</h2>
+        <p class="detail-description">{{ selectedRoomType.description }}</p>
+        
+        <div class="detail-info-grid">
+          <div class="detail-info-item">
+            <span class="detail-label">Giá mỗi đêm</span>
+            <span class="detail-value price">{{ formatPrice(selectedRoomType.basePrice) }}</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Sức chứa</span>
+            <span class="detail-value">{{ selectedRoomType.maxGuests }} người</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Tổng số phòng</span>
+            <span class="detail-value">{{ selectedRoomType.totalRooms || 0 }} phòng</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-label">Phòng trống</span>
+            <span class="detail-value available">{{ selectedRoomType.availableRooms || 0 }} phòng</span>
+          </div>
+        </div>
+
+        <div *ngIf="selectedRoomType.amenities && selectedRoomType.amenities.length > 0" class="detail-amenities">
+          <h4 class="detail-section-title">Tiện nghi</h4>
+          <div class="amenities-tags">
+            <span *ngFor="let amenity of selectedRoomType.amenities" class="amenity-tag">
+              {{ amenity }}
+            </span>
+          </div>
+        </div>
+
+        <div class="detail-actions">
+          <button class="btn-secondary" (click)="closeDetailModal()">Đóng</button>
+          <button class="btn-primary" (click)="closeDetailModal(); openEditModal(selectedRoomType)">
+            Chỉnh sửa
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div *ngIf="showDeleteConfirm && selectedRoomType" class="modal-overlay" (click)="closeDeleteConfirm()">
+    <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Xác nhận xóa</h3>
+        <button class="btn-close" (click)="closeDeleteConfirm()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>Bạn có chắc chắn muốn xóa loại phòng <strong>{{ selectedRoomType.name }}</strong>?</p>
+        <p class="warning-text">Hành động này không thể hoàn tác.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeDeleteConfirm()">Hủy</button>
+        <button class="btn-danger" (click)="confirmDelete()" [disabled]="isLoading">
+          {{ isLoading ? 'Đang xử lý...' : 'Xóa' }}
+        </button>
+      </div>
+    </div>
+  </div>

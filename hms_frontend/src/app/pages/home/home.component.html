@@ -34,9 +34,9 @@
       <div class="rooms-grid">
         <div *ngFor="let room of rooms()" class="room-card">
           <div class="room-image">
-            <img [src]="room.images[0]" [alt]="room.name">
-            <span class="badge" [class.available]="room.availableRooms > 0">
-              {{ room.availableRooms > 0 ? 'Available' : 'Fully Booked' }}
+            <img [src]="room.images?.[0] || 'assets/images/default-room.jpg'" [alt]="room.name">
+            <span class="badge" [class.available]="(room.availableRooms || 0) > 0">
+              {{ (room.availableRooms || 0) > 0 ? 'Available' : 'Fully Booked' }}
             </span>
           </div>
           
@@ -50,8 +50,8 @@
             </div>
             
             <div class="room-amenities">
-              <span *ngFor="let amenity of room.amenities.slice(0, 4)">{{ amenity }}</span>
-              <span *ngIf="room.amenities.length > 4">+{{ room.amenities.length - 4 }} more</span>
+              <span *ngFor="let amenity of (room.amenities || []).slice(0, 4)">{{ amenity }}</span>
+              <span *ngIf="(room.amenities?.length || 0) > 4">+{{ (room.amenities?.length || 0) - 4 }} more</span>
             </div>
             
             <div class="room-footer">
@@ -59,7 +59,7 @@
                 <span class="amount">{{ formatVND(room.basePrice) }}</span>
                 <span class="per">/đêm</span>
               </div>
-              <button class="btn-book" (click)="viewRoomDetail(room.roomTypeId)">
+              <button class="btn-book" (click)="room.roomTypeId && viewRoomDetail(room.roomTypeId)">
                 Book Now
               </button>
             </div>
