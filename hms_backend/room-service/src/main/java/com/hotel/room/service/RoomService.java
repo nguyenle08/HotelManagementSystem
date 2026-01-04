@@ -2,6 +2,7 @@ package com.hotel.room.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hotel.room.dto.RoomRequest;
 import com.hotel.room.dto.RoomSearchRequest;
 import com.hotel.room.dto.RoomStatusResponse;
 import com.hotel.room.dto.RoomTypeResponse;
@@ -26,109 +27,109 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoomService {
 
-  private final RoomTypeRepository roomTypeRepository;
-  private final RoomRepository roomRepository;
-  private final RoomAvailabilityRepository availabilityRepository;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RoomTypeRepository roomTypeRepository;
+    private final RoomRepository roomRepository;
+    private final RoomAvailabilityRepository availabilityRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private List<String> parseJsonList(String json) {
-    if (json == null || json.isEmpty()) {
-      return new ArrayList<>();
+    private List<String> parseJsonList(String json) {
+        if (json == null || json.isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
     }
-    try {
-      return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-    } catch (Exception e) {
-      return new ArrayList<>();
+
+    private RoomStatusResponse mapRoomStatus(Room room, List<RoomType> roomTypes) {
+        RoomStatusResponse resp = new RoomStatusResponse();
+        resp.setRoomId(room.getRoomId());
+        resp.setRoomNumber(room.getRoomNumber());
+        resp.setFloor(room.getFloor());
+        resp.setStatus(room.getStatus());
+        resp.setRoomTypeId(room.getRoomTypeId());
+
+        roomTypes.stream()
+                .filter(rt -> rt.getRoomTypeId().equals(room.getRoomTypeId()))
+                .findFirst()
+                .ifPresent(rt -> resp.setRoomTypeName(rt.getName()));
+
+        return resp;
     }
-  }
 
-  public List<RoomStatusResponse> getAllRoomsWithStatus() {
-    List<Room> rooms = roomRepository.findAll();
-    List<RoomType> roomTypes = roomTypeRepository.findAll();
+    public List<RoomStatusResponse> getAllRoomsWithStatus() {
+        List<Room> rooms = roomRepository.findAll();
+        List<RoomType> roomTypes = roomTypeRepository.findAll();
 
-    return rooms.stream().map(r -> {
-      RoomStatusResponse resp = new RoomStatusResponse();
-      resp.setRoomId(r.getRoomId());
-      resp.setRoomNumber(r.getRoomNumber());
-      resp.setFloor(r.getFloor());
-      resp.setStatus(r.getStatus());
-      resp.setRoomTypeId(r.getRoomTypeId());
+        return rooms.stream()
+                .map(r -> mapRoomStatus(r, roomTypes))
+                .collect(Collectors.toList());
+    }
 
-      roomTypes.stream()
-        .filter(rt -> rt.getRoomTypeId().equals(r.getRoomTypeId()))
-        .findFirst()
-        .ifPresent(rt -> resp.setRoomTypeName(rt.getName()));
+    public RoomStatusResponse createRoom(RoomRequest request) {
+        RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-      return resp;
-    }).collect(Collectors.toList());
-  }
+        Room room = new Room();
+        room.setRoomId(UUID.randomUUID().toString());
+        room.setRoomNumber(request.getRoomNumber());
+        room.setFloor(request.getFloor());
+        room.setStatus(request.getStatus());
+        room.setRoomTypeId(roomType.getRoomTypeId());
 
-  public List<RoomTypeResponse> getAllRoomTypes() {
-    List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
+        Room saved = roomRepository.save(room);
+        return mapRoomStatus(saved, List.of(roomType));
+    }
 
-    return roomTypes.stream().map(rt -> {
-      RoomTypeResponse response = new RoomTypeResponse();
-      response.setRoomTypeId(rt.getRoomTypeId());
-      response.setName(rt.getName());
-      response.setDescription(rt.getDescription());
-      response.setBasePrice(rt.getBasePrice());
-      response.setMaxGuests(rt.getMaxGuests());
-      response.setBedType(rt.getBedType());
-      response.setSizeSqm(rt.getSizeSqm());
-      response.setAmenities(parseJsonList(rt.getAmenities()));
-      response.setImages(parseJsonList(rt.getImages()));
-      response.setIsActive(rt.getIsActive());
+    public RoomStatusResponse updateRoom(String roomId, RoomRequest request) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
-      // Count available rooms
-      long totalRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
-      response.setAvailableRooms((int) totalRooms);
+        RoomType roomType = roomTypeRepository.findById(request.getRoomTypeId())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-      return response;
-    }).collect(Collectors.toList());
-  }
+        room.setRoomNumber(request.getRoomNumber());
+        room.setFloor(request.getFloor());
+        room.setStatus(request.getStatus());
+        room.setRoomTypeId(roomType.getRoomTypeId());
 
-  public RoomTypeResponse getRoomTypeById(String id) {
-    RoomType rt = roomTypeRepository.findById(id)
-      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
+        Room saved = roomRepository.save(room);
+        return mapRoomStatus(saved, List.of(roomType));
+    }
 
-    RoomTypeResponse response = new RoomTypeResponse();
-    response.setRoomTypeId(rt.getRoomTypeId());
-    response.setName(rt.getName());
-    response.setDescription(rt.getDescription());
-    response.setBasePrice(rt.getBasePrice());
-    response.setMaxGuests(rt.getMaxGuests());
-    response.setBedType(rt.getBedType());
-    response.setSizeSqm(rt.getSizeSqm());
-    response.setAmenities(parseJsonList(rt.getAmenities()));
-    response.setImages(parseJsonList(rt.getImages()));
-    response.setIsActive(rt.getIsActive());
+    public void deleteRoom(String roomId) {
+        roomRepository.deleteById(roomId);
+    }
 
-    long totalRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
-    response.setAvailableRooms((int) totalRooms);
+    public List<RoomTypeResponse> getAllRoomTypes() {
+        List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
 
-    return response;
-  }
+        return roomTypes.stream().map(rt -> {
+            RoomTypeResponse response = new RoomTypeResponse();
+            response.setRoomTypeId(rt.getRoomTypeId());
+            response.setName(rt.getName());
+            response.setDescription(rt.getDescription());
+            response.setBasePrice(rt.getBasePrice());
+            response.setMaxGuests(rt.getMaxGuests());
+            response.setBedType(rt.getBedType());
+            response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
+            response.setAmenities(parseJsonList(rt.getAmenities()));
+            response.setImages(parseJsonList(rt.getImages()));
+            response.setIsActive(rt.getIsActive());
 
-  public List<RoomTypeResponse> searchAvailableRooms(RoomSearchRequest request) {
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    LocalDate checkIn = LocalDate.parse(request.getCheckInDate(), formatter);
-    LocalDate checkOut = LocalDate.parse(request.getCheckOutDate(), formatter);
+            // Count available rooms
+            long totalRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
+            response.setAvailableRooms((int) totalRooms);
 
-    // Get unavailable room IDs
-    List<String> unavailableRoomIds = availabilityRepository
-      .findUnavailableRoomIds(checkIn, checkOut);
+            return response;
+        }).collect(Collectors.toList());
+    }
 
-    List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
-
-    return roomTypes.stream().map(rt -> {
-        // Get all active rooms for this type
-        List<Room> allRooms = roomRepository
-          .findByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
-
-        // Count available rooms
-        long availableCount = allRooms.stream()
-          .filter(room -> !unavailableRoomIds.contains(room.getRoomId()))
-          .count();
+    public RoomTypeResponse getRoomTypeById(String id) {
+        RoomType rt = roomTypeRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
         RoomTypeResponse response = new RoomTypeResponse();
         response.setRoomTypeId(rt.getRoomTypeId());
@@ -137,73 +138,112 @@ public class RoomService {
         response.setBasePrice(rt.getBasePrice());
         response.setMaxGuests(rt.getMaxGuests());
         response.setBedType(rt.getBedType());
-        response.setSizeSqm(rt.getSizeSqm());
+        response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
         response.setAmenities(parseJsonList(rt.getAmenities()));
         response.setImages(parseJsonList(rt.getImages()));
         response.setIsActive(rt.getIsActive());
-        response.setAvailableRooms((int) availableCount);
+
+        long totalRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
+        response.setAvailableRooms((int) totalRooms);
 
         return response;
-      })
-      .filter(rt -> rt.getAvailableRooms() > 0)
-      .collect(Collectors.toList());
-  }
-
-  /**
-   * Lock rooms cho reservation - tạo RoomAvailability records với status RESERVED
-   */
-  public void lockRoomsForReservation(String reservationId, String roomTypeId,
-                                      LocalDate checkInDate, LocalDate checkOutDate) {
-    // Tìm 1 phòng available cho room type này
-    List<Room> rooms = roomRepository.findByRoomTypeIdAndStatus(roomTypeId, "ACTIVE");
-
-    if (rooms.isEmpty()) {
-      throw new RuntimeException("Không có phòng active cho loại phòng này");
     }
 
-    // Lấy danh sách phòng đã bị unavailable trong khoảng thời gian
-    List<String> unavailableRoomIds = availabilityRepository
-      .findUnavailableRoomIds(checkInDate, checkOutDate);
+    public List<RoomTypeResponse> searchAvailableRooms(RoomSearchRequest request) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate checkIn = LocalDate.parse(request.getCheckInDate(), formatter);
+        LocalDate checkOut = LocalDate.parse(request.getCheckOutDate(), formatter);
 
-    // Tìm phòng available
-    Room availableRoom = rooms.stream()
-      .filter(room -> !unavailableRoomIds.contains(room.getRoomId()))
-      .findFirst()
-      .orElseThrow(() -> new RuntimeException("Không còn phòng trống trong khoảng thời gian này"));
+        // Get unavailable room IDs
+        List<String> unavailableRoomIds = availabilityRepository
+                .findUnavailableRoomIds(checkIn, checkOut);
 
-    // Tạo availability records cho mỗi ngày từ check-in đến check-out
-    LocalDate currentDate = checkInDate;
-    while (!currentDate.isAfter(checkOutDate.minusDays(1))) {
-      RoomAvailability availability = new RoomAvailability();
-      availability.setAvailabilityId(UUID.randomUUID().toString());
-      availability.setRoomId(availableRoom.getRoomId());
-      availability.setDate(currentDate);
-      availability.setStatus("RESERVED");
-      availability.setReservationId(reservationId);
-      availability.setUpdatedAt(LocalDateTime.now());
+        List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
 
-      availabilityRepository.save(availability);
-      currentDate = currentDate.plusDays(1);
+        return roomTypes.stream().map(rt -> {
+                    // Get all active rooms for this type
+                    List<Room> allRooms = roomRepository
+                            .findByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
+
+                    // Count available rooms
+                    long availableCount = allRooms.stream()
+                            .filter(room -> !unavailableRoomIds.contains(room.getRoomId()))
+                            .count();
+
+                    RoomTypeResponse response = new RoomTypeResponse();
+                    response.setRoomTypeId(rt.getRoomTypeId());
+                    response.setName(rt.getName());
+                    response.setDescription(rt.getDescription());
+                    response.setBasePrice(rt.getBasePrice());
+                    response.setMaxGuests(rt.getMaxGuests());
+                    response.setBedType(rt.getBedType());
+                    response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
+                    response.setAmenities(parseJsonList(rt.getAmenities()));
+                    response.setImages(parseJsonList(rt.getImages()));
+                    response.setIsActive(rt.getIsActive());
+                    response.setAvailableRooms((int) availableCount);
+
+                    return response;
+                })
+                .filter(rt -> rt.getAvailableRooms() > 0)
+                .collect(Collectors.toList());
     }
-  }
 
-  /**
-   * Unlock rooms khi cancel reservation
-   */
-  public void unlockRoomsForReservation(String reservationId) {
-    List<RoomAvailability> availabilities = availabilityRepository
-      .findByReservationId(reservationId);
+    /**
+     * Lock rooms cho reservation - tạo RoomAvailability records với status RESERVED
+     */
+    public void lockRoomsForReservation(String reservationId, String roomTypeId,
+                                        LocalDate checkInDate, LocalDate checkOutDate) {
+        // Tìm 1 phòng available cho room type này
+        List<Room> rooms = roomRepository.findByRoomTypeIdAndStatus(roomTypeId, "ACTIVE");
 
-    availabilityRepository.deleteAll(availabilities);
-  }
+        if (rooms.isEmpty()) {
+            throw new RuntimeException("Không có phòng active cho loại phòng này");
+        }
 
-  /**
-   * TESTING ONLY - Xóa availability records sau một ngày cụ thể
-   */
-  public void cleanupAvailabilityAfterDate(String afterDate) {
-    LocalDate date = LocalDate.parse(afterDate);
-    List<RoomAvailability> records = availabilityRepository
-      .findByDateGreaterThanEqual(date);
-    availabilityRepository.deleteAll(records);
-  }
+        // Lấy danh sách phòng đã bị unavailable trong khoảng thời gian
+        List<String> unavailableRoomIds = availabilityRepository
+                .findUnavailableRoomIds(checkInDate, checkOutDate);
+
+        // Tìm phòng available
+        Room availableRoom = rooms.stream()
+                .filter(room -> !unavailableRoomIds.contains(room.getRoomId()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Không còn phòng trống trong khoảng thời gian này"));
+
+        // Tạo availability records cho mỗi ngày từ check-in đến check-out
+        LocalDate currentDate = checkInDate;
+        while (!currentDate.isAfter(checkOutDate.minusDays(1))) {
+            RoomAvailability availability = new RoomAvailability();
+            availability.setAvailabilityId(UUID.randomUUID().toString());
+            availability.setRoomId(availableRoom.getRoomId());
+            availability.setDate(currentDate);
+            availability.setStatus("RESERVED");
+            availability.setReservationId(reservationId);
+            availability.setUpdatedAt(LocalDateTime.now());
+
+            availabilityRepository.save(availability);
+            currentDate = currentDate.plusDays(1);
+        }
+    }
+
+    /**
+     * Unlock rooms khi cancel reservation
+     */
+    public void unlockRoomsForReservation(String reservationId) {
+        List<RoomAvailability> availabilities = availabilityRepository
+                .findByReservationId(reservationId);
+
+        availabilityRepository.deleteAll(availabilities);
+    }
+
+    /**
+     * TESTING ONLY - Xóa availability records sau một ngày cụ thể
+     */
+    public void cleanupAvailabilityAfterDate(String afterDate) {
+        LocalDate date = LocalDate.parse(afterDate);
+        List<RoomAvailability> records = availabilityRepository
+                .findByDateGreaterThanEqual(date);
+        availabilityRepository.deleteAll(records);
+    }
 }

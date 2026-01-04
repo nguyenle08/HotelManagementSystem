@@ -6,7 +6,7 @@
       <!-- Left: Images -->
       <div class="room-images">
         <div class="main-image">
-          <img [src]="room()!.images[selectedImage()]" [alt]="room()!.name">
+          <img [src]="room()!.images?.[selectedImage()] || 'assets/images/default-room.jpg'" [alt]="room()!.name">
           <button class="nav-btn prev" (click)="prevImage()">‹</button>
           <button class="nav-btn next" (click)="nextImage()">›</button>
         </div>

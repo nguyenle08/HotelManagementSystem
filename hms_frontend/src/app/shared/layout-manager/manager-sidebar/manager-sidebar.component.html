@@ -23,6 +23,13 @@
       </li>
 
       <li routerLinkActive="active">
+        <a routerLink="/manager/room-types" [title]="isCollapsed ? 'Quản lý phòng' : ''">
+          <i class="fa-solid fa-bed"></i>
+          <span class="nav-text" *ngIf="!isCollapsed">Quản lý loại phòng</span>
+        </a>
+      </li>
+
+      <li routerLinkActive="active">
         <a routerLink="/manager/rooms" [title]="isCollapsed ? 'Quản lý phòng' : ''">
           <i class="fa-solid fa-bed"></i>
           <span class="nav-text" *ngIf="!isCollapsed">Quản lý phòng</span>
@@ -30,22 +37,8 @@
       </li>
 
       <li routerLinkActive="active">
-        <a routerLink="/manager/reservations" [title]="isCollapsed ? 'Quản lý đặt phòng' : ''">
-          <i class="fa-solid fa-calendar-check"></i>
-          <span class="nav-text" *ngIf="!isCollapsed">Quản lý đặt phòng</span>
-        </a>
-      </li>
-
-      <li routerLinkActive="active">
-        <a routerLink="/manager/revenue" [title]="isCollapsed ? 'Báo cáo doanh thu' : ''">
-          <i class="fa-solid fa-chart-pie"></i>
-          <span class="nav-text" *ngIf="!isCollapsed">Báo cáo doanh thu</span>
-        </a>
-      </li>
-
-      <li routerLinkActive="active">
         <a routerLink="/manager/reports" [title]="isCollapsed ? 'Thống kê & Báo cáo' : ''">
-          <i class="fa-solid fa-file-chart-line"></i>
+          <i class="fa-solid fa-chart-pie"></i>
           <span class="nav-text" *ngIf="!isCollapsed">Thống kê & Báo cáo</span>
         </a>
       </li>

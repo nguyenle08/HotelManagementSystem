@@ -1,0 +1,122 @@
+<div class="dashboard-page">
+	<div class="dashboard-header">
+		<h1>Tổng quan hệ thống</h1>
+		<p class="subtitle">Theo dõi nhanh tình trạng phòng và hoạt động gần đây</p>
+	</div>
+
+	<div *ngIf="errorMessage" class="alert alert-error">
+		{{ errorMessage }}
+	</div>
+
+	<div class="stats-grid">
+		<div class="stat-card">
+			<div class="stat-main">
+				<div class="stat-icon stat-icon-orange">
+					<i class="fa-solid fa-door-open"></i>
+				</div>
+				<div class="stat-content">
+					<div class="stat-label">Tổng phòng</div>
+					<div class="stat-value">{{ totalRooms }}</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="stat-card">
+			<div class="stat-main">
+				<div class="stat-icon stat-icon-green">
+					<i class="fa-solid fa-check"></i>
+				</div>
+				<div class="stat-content">
+					<div class="stat-label">Phòng trống</div>
+					<div class="stat-value">{{ freeRooms }}</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="stat-card">
+			<div class="stat-main">
+				<div class="stat-icon stat-icon-blue">
+					<i class="fa-solid fa-user"></i>
+				</div>
+				<div class="stat-content">
+					<div class="stat-label">Đang sử dụng</div>
+					<div class="stat-value">{{ usingRooms }}</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="stat-card">
+			<div class="stat-main">
+				<div class="stat-icon stat-icon-red">
+					<i class="fa-solid fa-screwdriver-wrench"></i>
+				</div>
+				<div class="stat-content">
+					<div class="stat-label">Bảo trì</div>
+					<div class="stat-value">{{ maintenanceRooms }}</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="quick-grid">
+		<a class="quick-card quick-card-orange" routerLink="/manager/room-types">
+			<div class="quick-icon">
+				<i class="fa-solid fa-list"></i>
+			</div>
+			<div class="quick-content">
+				<div class="quick-title">Quản lý loại phòng</div>
+				<div class="quick-subtitle">Thêm, sửa, xóa loại phòng và cập nhật giá</div>
+			</div>
+		</a>
+
+		<a class="quick-card quick-card-teal" routerLink="/manager/rooms">
+			<div class="quick-icon">
+				<i class="fa-solid fa-building"></i>
+			</div>
+			<div class="quick-content">
+				<div class="quick-title">Quản lý phòng</div>
+				<div class="quick-subtitle">Quản lý phòng vật lý và trạng thái</div>
+			</div>
+		</a>
+
+		<a class="quick-card quick-card-purple" routerLink="/manager/reports">
+			<div class="quick-icon">
+				<i class="fa-solid fa-chart-line"></i>
+			</div>
+			<div class="quick-content">
+				<div class="quick-title">Xem báo cáo</div>
+				<div class="quick-subtitle">Thống kê và phân tích dữ liệu</div>
+			</div>
+		</a>
+	</div>
+
+	<div class="recent-panel">
+		<div class="recent-header">
+			<h2>Hoạt động gần đây</h2>
+		</div>
+
+		<div *ngIf="!recentReservations.length" class="empty-state">
+			Chưa có hoạt động nào gần đây.
+		</div>
+
+		<ul *ngIf="recentReservations.length" class="activity-list">
+			<li *ngFor="let r of recentReservations" class="activity-item">
+				<div class="activity-icon activity-icon-green">
+					<i class="fa-solid fa-plus"></i>
+				</div>
+				<div class="activity-content">
+					<div class="activity-title">
+						Đặt phòng mới - {{ r.roomTypeName }}
+					</div>
+					<div class="activity-meta">
+						Mã: {{ r.reservationCode }} • Check-in:
+						{{ r.checkInDate | date: 'dd/MM/yyyy' }}
+					</div>
+				</div>
+				<div class="activity-time">
+					{{ r.createdAt | date: 'HH:mm dd/MM' }}
+				</div>
+			</li>
+		</ul>
+	</div>
+</div>

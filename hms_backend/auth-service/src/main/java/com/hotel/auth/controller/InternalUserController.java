@@ -1,6 +1,7 @@
 package com.hotel.auth.controller;
 
 import com.hotel.auth.dto.ApiResponse;
+import com.hotel.auth.dto.AuthUpdateProfileRequest;
 import com.hotel.auth.dto.UserProfileResponse;
 import com.hotel.auth.entity.User;
 import com.hotel.auth.repository.UserRepository;
@@ -34,5 +35,18 @@ public class InternalUserController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{userId}")
+    public void updateProfile(
+            @PathVariable String userId,
+            @RequestBody AuthUpdateProfileRequest req
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFullname(req.getFirstName() + " " + req.getLastName());
+        user.setPhone(req.getPhone());
+        userRepository.save(user);
     }
 }

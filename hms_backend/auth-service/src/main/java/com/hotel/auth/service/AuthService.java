@@ -1,7 +1,9 @@
 package com.hotel.auth.service;
 
+import com.hotel.auth.client.UserClient;
 import com.hotel.auth.dto.AuthResponse;
 import com.hotel.auth.dto.CreateAdminRequest;
+import com.hotel.auth.dto.CreateGuestRequest;
 import com.hotel.auth.dto.CreateUserByAdminRequest;
 import com.hotel.auth.dto.LoginRequest;
 import com.hotel.auth.dto.RegisterRequest;
@@ -23,35 +25,55 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final UserClient userClient;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        // Validate
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new RuntimeException("Username đã tồn tại");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email đã tồn tại");
-        }
 
-        // Create user
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPhone(request.getPhone());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        // Gán fullname để đồng bộ sang Auth DB
         user.setFullname(request.getFullname());
         user.setRole("USER");
 
         user = userRepository.save(user);
 
-        // Generate tokens
-        String token = jwtUtil.generateToken(user.getUserId(), user.getUsername(), user.getRole());
-        String refreshToken = jwtUtil.generateRefreshToken(user.getUserId());
+        // ✅ TÁCH HỌ TÊN
+        String firstName = "";
+        String lastName = "";
+
+        if (request.getFullname() != null && !request.getFullname().trim().isEmpty()) {
+            String fullname = request.getFullname().trim();
+            int lastSpaceIndex = fullname.lastIndexOf(" ");
+
+            if (lastSpaceIndex != -1) {
+                lastName = fullname.substring(0, lastSpaceIndex);
+                firstName = fullname.substring(lastSpaceIndex + 1);
+            } else {
+                firstName = fullname;
+            }
+        }
+
+        // ✅ GỌI USER-SERVICE TẠO GUEST
+        userClient.createGuest(
+                new CreateGuestRequest(
+                        user.getUserId(),
+                        firstName,
+                        lastName,
+                        request.getPhone(),
+                        request.getCccd() != null ? request.getCccd() : "Chưa cập nhật"
+                )
+        );
 
         return new AuthResponse(
-                token,
-                refreshToken,
+                jwtUtil.generateToken(user.getUserId(), user.getUsername(), user.getRole()),
+                jwtUtil.generateRefreshToken(user.getUserId()),
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),

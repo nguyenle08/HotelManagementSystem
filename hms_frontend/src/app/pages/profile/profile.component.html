@@ -1,0 +1,101 @@
+<div class="profile-page">
+  <div class="profile-wrapper">
+
+    <!-- Title -->
+    <h2 class="page-title">Hồ Sơ Cá Nhân</h2>
+    <p class="page-subtitle">Quản lý thông tin tài khoản của bạn</p>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+
+      <!-- Header -->
+      <div class="profile-header">
+        <div class="avatar">
+          <span class="icon">👤</span>
+        </div>
+        <div class="header-info">
+          <h3>
+            {{ profileForm.getRawValue().lastName }}
+            {{ profileForm.getRawValue().firstName }}
+          </h3>
+          <span class="username">{{ profileForm.value.username }}</span>
+          <span class="role-badge">
+            {{ profileForm.value.role === 'USER' ? 'Khách hàng' : profileForm.value.role }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="profileForm" class="profile-form">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Tên đăng nhập</label>
+            <input formControlName="username" />
+            <small>Không thể thay đổi</small>
+          </div>
+
+          <div class="form-group">
+            <label>Vai trò</label>
+            <input formControlName="role" />
+            <small>Không thể thay đổi</small>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Họ</label>
+            <input formControlName="lastName" />
+          </div>
+
+          <div class="form-group">
+            <label>Tên</label>
+            <input formControlName="firstName" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Số điện thoại</label>
+            <input formControlName="phone" />
+          </div>
+
+          <div class="form-group">
+            <label>CCCD</label>
+            <input formControlName="cccd" />
+          </div>
+        </div>
+
+        <div class="form-group full">
+          <label>Địa chỉ</label>
+          <input formControlName="address" />
+        </div>
+
+        <button class="btn-save" (click)="onSubmit()" [disabled]="profileForm.invalid">
+          ✏️ Chỉnh sửa hồ sơ
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="action-cards">
+      <div class="action-card">
+        <div class="icon-box">🔒</div>
+        <div>
+          <h4>Đổi mật khẩu</h4>
+          <p>Cập nhật mật khẩu của bạn</p>
+        </div>
+      </div>
+
+      <div class="action-card" (click)="goToMyReservations()" style="cursor: pointer;">
+        <div class="icon-box">📅</div>
+        <div>
+          <h4>Đặt phòng của tôi</h4>
+          <p>Xem lịch sử đặt phòng</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

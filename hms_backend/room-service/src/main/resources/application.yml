@@ -6,9 +6,9 @@ spring:
     name: room-service
 
   datasource:
-    url: jdbc:mysql://localhost:3306/room_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3307/room_service_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
     username: root
-    password: 1234
+    password:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

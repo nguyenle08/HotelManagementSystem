@@ -45,6 +45,14 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'profile',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./pages/profile/profile.component').then(
+            (m) => m.ProfileComponent
+          ),
+      },
+      {
         path: 'reservation-detail/:id',
         canActivate: [authGuard],
         loadComponent: () =>
@@ -136,8 +144,29 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./pages/manager/manager-dashboard.component').then(
+          import('./pages/manager/manager-dashboard/manager-dashboard.component').then(
             (m) => m.ManagerDashboardComponent
+          ),
+      },
+      {
+        path: 'room-types',
+        loadComponent: () =>
+          import('./pages/manager/manager-room-type/manager-room-type.component').then(
+            (m) => m.ManagerRoomTypeComponent
+          ),
+      },
+      {
+        path: 'rooms',
+        loadComponent: () =>
+          import('./pages/manager/manager-room/manager-room.component').then(
+            (m) => m.ManagerRoomComponent
+          ),
+      },
+      {
+        path: 'reports',
+        loadComponent: () =>
+          import('./pages/manager/manager-report/manager-report.component').then(
+            (m) => m.ManagerReportComponent
           ),
       },
     ],

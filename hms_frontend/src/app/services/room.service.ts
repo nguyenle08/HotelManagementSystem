@@ -33,4 +33,32 @@ export class RoomService {
   getRoomStatuses(): Observable<ApiResponse<RoomStatus[]>> {
     return this.http.get<ApiResponse<RoomStatus[]>>(`${this.apiUrl}/status`);
   }
+
+  createRoom(payload: {
+    roomNumber: string;
+    floor: number;
+    status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED';
+    roomTypeId: string;
+  }): Observable<ApiResponse<RoomStatus>> {
+    return this.http.post<ApiResponse<RoomStatus>>(`${this.apiUrl}/manage`, payload);
+  }
+
+  updateRoom(
+    id: string,
+    payload: {
+      roomNumber: string;
+      floor: number;
+      status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED';
+      roomTypeId: string;
+    }
+  ): Observable<ApiResponse<RoomStatus>> {
+    return this.http.put<ApiResponse<RoomStatus>>(
+      `${this.apiUrl}/manage/${id}`,
+      payload
+    );
+  }
+
+  deleteRoom(id: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.apiUrl}/manage/${id}`);
+  }
 }
