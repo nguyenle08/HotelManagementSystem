@@ -6,6 +6,8 @@ import com.hotel.room.dto.RoomSearchRequest;
 import com.hotel.room.dto.RoomStatusResponse;
 import com.hotel.room.dto.RoomTypeResponse;
 import com.hotel.room.service.RoomService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
+@Tag(name = "Rooms", description = "Room and room type management endpoints")
 public class RoomController {
 
   private final RoomService roomService;

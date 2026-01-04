@@ -7,6 +7,8 @@ import com.hotel.auth.dto.CreateUserByAdminRequest;
 import com.hotel.auth.dto.LoginRequest;
 import com.hotel.auth.dto.RegisterRequest;
 import com.hotel.auth.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Authentication", description = "Authentication and user registration endpoints")
 public class AuthController {
 
     private final AuthService authService;

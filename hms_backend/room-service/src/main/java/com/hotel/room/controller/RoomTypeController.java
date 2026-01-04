@@ -4,6 +4,8 @@ import com.hotel.room.dto.ApiResponse;
 import com.hotel.room.dto.RoomTypeRequest;
 import com.hotel.room.dto.RoomTypeResponse;
 import com.hotel.room.service.RoomTypeService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -26,6 +28,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/room-types")
 @RequiredArgsConstructor
+@Tag(name = "Room Types", description = "Room type CRUD operations and image management")
 public class RoomTypeController {
 
   private final RoomTypeService roomTypeService;
