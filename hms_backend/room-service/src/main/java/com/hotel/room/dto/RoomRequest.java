@@ -8,8 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomRequest {
-    private String roomNumber;
-    private Integer floor;
-    private String status; // ACTIVE, MAINTENANCE, DECOMMISSIONED
-    private String roomTypeId;
+  private String roomNumber;
+  private Integer floor;
+  private String status; // ACTIVE, MAINTENANCE, DECOMMISSIONED
+  private String roomTypeId;
 }

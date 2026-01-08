@@ -28,111 +28,111 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RoomTypeService {
 
-    private final RoomTypeRepository roomTypeRepository;
-    private final RoomRepository roomRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+  private final RoomTypeRepository roomTypeRepository;
+  private final RoomRepository roomRepository;
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private List<String> parseJsonList(String json) {
-        if (json == null || json.isEmpty()) {
-            return new ArrayList<>();
-        }
-        try {
-            return objectMapper.readValue(json, new TypeReference<List<String>>() {});
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+  private List<String> parseJsonList(String json) {
+    if (json == null || json.isEmpty()) {
+      return new ArrayList<>();
     }
-
-    private String toJson(List<String> list) {
-        if (list == null || list.isEmpty()) {
-            return "[]";
-        }
-        try {
-            return objectMapper.writeValueAsString(list);
-        } catch (Exception e) {
-            return "[]";
-        }
+    try {
+      return objectMapper.readValue(json, new TypeReference<List<String>>() {});
+    } catch (Exception e) {
+      return new ArrayList<>();
     }
+  }
 
-    public List<RoomTypeResponse> getAllRoomTypes() {
-        List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
-
-        return roomTypes.stream().map(this::mapToResponse).collect(Collectors.toList());
+  private String toJson(List<String> list) {
+    if (list == null || list.isEmpty()) {
+      return "[]";
     }
-
-    public RoomTypeResponse getRoomTypeById(String id) {
-        RoomType roomType = roomTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
-
-        return mapToResponse(roomType);
+    try {
+      return objectMapper.writeValueAsString(list);
+    } catch (Exception e) {
+      return "[]";
     }
+  }
 
-    @Transactional
-    public RoomTypeResponse createRoomType(RoomTypeRequest request) {
-        RoomType roomType = new RoomType();
-        roomType.setRoomTypeId(UUID.randomUUID().toString());
-        roomType.setName(request.getName());
-        roomType.setDescription(request.getDescription());
-        roomType.setBasePrice(request.getBasePrice());
-        roomType.setMaxGuests(request.getMaxGuests());
-        roomType.setBedType(request.getBedType());
-        roomType.setSizeSqm(request.getSizeSqm() != null ? BigDecimal.valueOf(request.getSizeSqm()) : null);
-        roomType.setAmenities(toJson(request.getAmenities()));
-        roomType.setImages(toJson(request.getImages()));
-        roomType.setIsActive(true);
+  public List<RoomTypeResponse> getAllRoomTypes() {
+    List<RoomType> roomTypes = roomTypeRepository.findByIsActiveTrue();
 
-        RoomType saved = roomTypeRepository.save(roomType);
-        return mapToResponse(saved);
-    }
+    return roomTypes.stream().map(this::mapToResponse).collect(Collectors.toList());
+  }
 
-    @Transactional
-    public RoomTypeResponse updateRoomType(String id, RoomTypeRequest request) {
-        RoomType roomType = roomTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
+  public RoomTypeResponse getRoomTypeById(String id) {
+    RoomType roomType = roomTypeRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-        roomType.setName(request.getName());
-        roomType.setDescription(request.getDescription());
-        roomType.setBasePrice(request.getBasePrice());
-        roomType.setMaxGuests(request.getMaxGuests());
-        roomType.setBedType(request.getBedType());
-        roomType.setSizeSqm(request.getSizeSqm() != null ? BigDecimal.valueOf(request.getSizeSqm()) : null);
-        roomType.setAmenities(toJson(request.getAmenities()));
-        roomType.setImages(toJson(request.getImages()));
+    return mapToResponse(roomType);
+  }
 
-        RoomType updated = roomTypeRepository.save(roomType);
-        return mapToResponse(updated);
-    }
+  @Transactional
+  public RoomTypeResponse createRoomType(RoomTypeRequest request) {
+    RoomType roomType = new RoomType();
+    roomType.setRoomTypeId(UUID.randomUUID().toString());
+    roomType.setName(request.getName());
+    roomType.setDescription(request.getDescription());
+    roomType.setBasePrice(request.getBasePrice());
+    roomType.setMaxGuests(request.getMaxGuests());
+    roomType.setBedType(request.getBedType());
+    roomType.setSizeSqm(request.getSizeSqm() != null ? BigDecimal.valueOf(request.getSizeSqm()) : null);
+    roomType.setAmenities(toJson(request.getAmenities()));
+    roomType.setImages(toJson(request.getImages()));
+    roomType.setIsActive(true);
 
-    @Transactional
-    public void deleteRoomType(String id) {
-        RoomType roomType = roomTypeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
+    RoomType saved = roomTypeRepository.save(roomType);
+    return mapToResponse(saved);
+  }
 
-        // Soft delete
-        roomType.setIsActive(false);
-        roomTypeRepository.save(roomType);
-    }
+  @Transactional
+  public RoomTypeResponse updateRoomType(String id, RoomTypeRequest request) {
+    RoomType roomType = roomTypeRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-    private RoomTypeResponse mapToResponse(RoomType rt) {
-        RoomTypeResponse response = new RoomTypeResponse();
-        response.setRoomTypeId(rt.getRoomTypeId());
-        response.setName(rt.getName());
-        response.setDescription(rt.getDescription());
-        response.setBasePrice(rt.getBasePrice());
-        response.setMaxGuests(rt.getMaxGuests());
-        response.setBedType(rt.getBedType());
-        response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
-        response.setAmenities(parseJsonList(rt.getAmenities()));
-        response.setImages(parseJsonList(rt.getImages()));
-        response.setIsActive(rt.getIsActive());
+    roomType.setName(request.getName());
+    roomType.setDescription(request.getDescription());
+    roomType.setBasePrice(request.getBasePrice());
+    roomType.setMaxGuests(request.getMaxGuests());
+    roomType.setBedType(request.getBedType());
+    roomType.setSizeSqm(request.getSizeSqm() != null ? BigDecimal.valueOf(request.getSizeSqm()) : null);
+    roomType.setAmenities(toJson(request.getAmenities()));
+    roomType.setImages(toJson(request.getImages()));
 
-        // Count total rooms and available rooms
-        long totalRooms = roomRepository.countByRoomTypeId(rt.getRoomTypeId());
-        long availableRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
+    RoomType updated = roomTypeRepository.save(roomType);
+    return mapToResponse(updated);
+  }
 
-        response.setTotalRooms((int) totalRooms);
-        response.setAvailableRooms((int) availableRooms);
+  @Transactional
+  public void deleteRoomType(String id) {
+    RoomType roomType = roomTypeRepository.findById(id)
+      .orElseThrow(() -> new RuntimeException("Không tìm thấy loại phòng"));
 
-        return response;
-    }
+    // Soft delete
+    roomType.setIsActive(false);
+    roomTypeRepository.save(roomType);
+  }
+
+  private RoomTypeResponse mapToResponse(RoomType rt) {
+    RoomTypeResponse response = new RoomTypeResponse();
+    response.setRoomTypeId(rt.getRoomTypeId());
+    response.setName(rt.getName());
+    response.setDescription(rt.getDescription());
+    response.setBasePrice(rt.getBasePrice());
+    response.setMaxGuests(rt.getMaxGuests());
+    response.setBedType(rt.getBedType());
+    response.setSizeSqm(rt.getSizeSqm() != null ? rt.getSizeSqm().doubleValue() : null);
+    response.setAmenities(parseJsonList(rt.getAmenities()));
+    response.setImages(parseJsonList(rt.getImages()));
+    response.setIsActive(rt.getIsActive());
+
+    // Count total rooms and available rooms
+    long totalRooms = roomRepository.countByRoomTypeId(rt.getRoomTypeId());
+    long availableRooms = roomRepository.countByRoomTypeIdAndStatus(rt.getRoomTypeId(), "ACTIVE");
+    
+    response.setTotalRooms((int) totalRooms);
+    response.setAvailableRooms((int) availableRooms);
+
+    return response;
+  }
 }

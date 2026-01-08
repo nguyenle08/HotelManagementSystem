@@ -20,6 +20,8 @@ public class SecurityConfig {
     http
       .csrf(csrf -> csrf.disable())
       .authorizeHttpRequests(auth -> auth
+        // Swagger UI endpoints
+        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
         .requestMatchers("/reservation/api/reservations/all").hasAnyRole("STAFF", "ADMIN", "MANAGER")
         .requestMatchers("/reservation/api/reservations/*/check-in").hasAnyRole("STAFF", "ADMIN", "MANAGER")
         .requestMatchers("/reservation/api/reservations/*/check-out").hasAnyRole("STAFF", "ADMIN", "MANAGER")

@@ -11,12 +11,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomTypeRequest {
-    private String name;
-    private String description;
-    private BigDecimal basePrice;
-    private Integer maxGuests;
-    private String bedType;
-    private Double sizeSqm;
-    private List<String> amenities;
-    private List<String> images;
+  private String name;
+  private String description;
+  private BigDecimal basePrice;
+  private Integer maxGuests;
+  private String bedType;
+  private Double sizeSqm;
+  private List<String> amenities;
+  private List<String> images;
 }

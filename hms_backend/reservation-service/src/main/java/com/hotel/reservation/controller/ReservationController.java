@@ -6,6 +6,8 @@ import com.hotel.reservation.dto.ReservationDetailResponse;
 import com.hotel.reservation.dto.ReservationResponse;
 import com.hotel.reservation.service.ReservationDetailService;
 import com.hotel.reservation.service.ReservationService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
+@Tag(name = "Reservations", description = "Reservation booking, check-in, check-out operations")
 public class ReservationController {
 
   private final ReservationService reservationService;
