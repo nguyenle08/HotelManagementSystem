@@ -43,4 +43,20 @@ public class AuthClient {
                 .bodyToMono(Void.class)
                 .block();
     }
+
+    public void lockUser(String userId) {
+        webClient.post()
+                .uri("/{userId}/lock", userId)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
+
+    public void unlockUser(String userId) {
+        webClient.post()
+                .uri("/{userId}/unlock", userId)
+                .retrieve()
+                .bodyToMono(Void.class)
+                .block();
+    }
 }

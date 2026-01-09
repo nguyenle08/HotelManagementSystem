@@ -1,0 +1,176 @@
+<div class="admin-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Tổng quan hệ thống</h1>
+      <p class="subtitle">Quản lý và giám sát hoạt động của hệ thống</p>
+    </div>
+    <button class="btn-refresh" (click)="loadDashboardData()">
+      <span>🔄</span> Làm mới
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Đang tải dữ liệu...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert-error">
+    <span>⚠️ {{ error }}</span>
+    <button class="btn-retry" (click)="loadDashboardData()">Thử lại</button>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading && !error && stats" class="dashboard-content">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card card-users">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <h3 class="stat-label">Tổng người dùng</h3>
+          <p class="stat-value">{{ stats.totalUsers }}</p>
+          <span class="stat-change positive">+8%</span>
+        </div>
+      </div>
+
+      <div class="stat-card card-active">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <h3 class="stat-label">Tài khoản hoạt động</h3>
+          <p class="stat-value">{{ stats.activeUsers }}</p>
+          <span class="stat-change positive">+5%</span>
+        </div>
+      </div>
+
+      <div class="stat-card card-staff">
+        <div class="stat-icon">👨‍💼</div>
+        <div class="stat-content">
+          <h3 class="stat-label">Nhân viên</h3>
+          <p class="stat-value">{{ stats.staffCount }}</p>
+          <span class="stat-change">0%</span>
+        </div>
+      </div>
+
+      <div class="stat-card card-locked">
+        <div class="stat-icon">🔒</div>
+        <div class="stat-content">
+          <h3 class="stat-label">Tài khoản bị khóa</h3>
+          <p class="stat-value">{{ stats.lockedAccounts }}</p>
+          <span class="stat-change negative">+2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="dashboard-grid">
+      <!-- Role Distribution -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Phân bổ vai trò</h2>
+          <button class="btn-link" routerLink="/admin/users">Xem chi tiết →</button>
+        </div>
+        <div class="card-body">
+          <div *ngIf="stats.roleStats && stats.roleStats.length > 0" class="role-stats">
+            <div *ngFor="let role of stats.roleStats" class="role-item">
+              <div class="role-info">
+                <span class="role-badge" [ngClass]="getRoleColor(role.role)">
+                  {{ role.role }}
+                </span>
+                <span class="role-count">{{ role.count }} người ({{ role.percent | number:'1.0-0' }}%)</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" 
+                     [style.width.%]="role.percent"
+                     [ngClass]="getRoleColor(role.role)"></div>
+              </div>
+            </div>
+          </div>
+          <div *ngIf="!stats.roleStats || stats.roleStats.length === 0" class="empty-state">
+            <p>Chưa có dữ liệu phân bổ vai trò</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Status -->
+      <div class="dashboard-card">
+        <div class="card-header">
+          <h2>Trạng thái tài khoản</h2>
+        </div>
+        <div class="card-body">
+          <div class="status-chart">
+            <div class="chart-item">
+              <div class="chart-icon active">✓</div>
+              <div class="chart-info">
+                <h3>Hoạt động</h3>
+                <p class="chart-value">{{ stats.activeUsers }}</p>
+                <div class="chart-bar">
+                  <div class="chart-fill active" [style.width.%]="getActivePercentage()"></div>
+                </div>
+                <span class="chart-percent">{{ getActivePercentage() | number:'1.0-0' }}% của tổng số</span>
+              </div>
+            </div>
+
+            <div class="chart-item">
+              <div class="chart-icon locked">🔒</div>
+              <div class="chart-info">
+                <h3>Bị khóa</h3>
+                <p class="chart-value">{{ stats.lockedAccounts }}</p>
+                <div class="chart-bar">
+                  <div class="chart-fill locked" [style.width.%]="getLockedPercentage()"></div>
+                </div>
+                <span class="chart-percent">{{ getLockedPercentage() | number:'1.0-0' }}% của tổng số</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <h2>Hoạt động gần đây</h2>
+        <button class="btn-icon" (click)="loadDashboardData()">🔄</button>
+      </div>
+      <div class="card-body">
+        <div *ngIf="stats.recentActivities && stats.recentActivities.length > 0" class="activities-list">
+          <div *ngFor="let activity of stats.recentActivities" class="activity-item">
+            <div class="activity-icon">📋</div>
+            <div class="activity-content">
+              <p class="activity-message">{{ activity.message }}</p>
+              <span class="activity-time">{{ activity.time }}</span>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="!stats.recentActivities || stats.recentActivities.length === 0" class="empty-state">
+          <p class="empty-icon">ℹ️</p>
+          <p>Chưa có hoạt động nào</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h2>Quản lý hệ thống</h2>
+      <div class="action-grid">
+        <button class="action-btn" routerLink="/admin/users">
+          <div class="action-icon">👤</div>
+          <div class="action-content">
+            <h3>Quản lý tài khoản</h3>
+            <p>Thêm, sửa, xóa và khóa tài khoản người dùng</p>
+          </div>
+        </button>
+
+        <button class="action-btn">
+          <div class="action-icon">⚙️</div>
+          <div class="action-content">
+            <h3>Cài đặt hệ thống</h3>
+            <p>Cấu hình và quản lý các thiết lập hệ thống</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

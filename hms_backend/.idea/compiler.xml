@@ -1,58 +1,70 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile default="true" name="Default" enabled="true" />
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <module name="api-gateway" />
-        <module name="discovery-server" />
-      </profile>
-      <profile name="Annotation profile for user-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.32/lombok-1.18.32.jar" />
-        </processorPath>
-        <module name="user-service" />
-      </profile>
-      <profile name="Annotation profile for payment-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-        </processorPath>
-        <module name="notification-service" />
-        <module name="payment-service" />
-      </profile>
-      <profile name="Annotation profile for auth-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-        </processorPath>
-        <module name="auth-service" />
-        <module name="room-service" />
-        <module name="reservation-service" />
-      </profile>
-    </annotationProcessing>
-  </component>
-  <component name="JavacSettings">
-    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="api-gateway" options="-parameters" />
-      <module name="auth-service" options="-parameters" />
-      <module name="discovery-server" options="-parameters" />
-      <module name="notification-service" options="-parameters" />
-      <module name="payment-service" options="-parameters" />
-      <module name="reservation-service" options="-parameters" />
-      <module name="room-service" options="-parameters" />
-      <module name="user-service" options="-parameters" />
-    </option>
-  </component>
-</project>
+package com.hotel.auth.controller;
+
+import com.hotel.auth.dto.ApiResponse;
+import com.hotel.auth.dto.AuthUpdateProfileRequest;
+import com.hotel.auth.dto.UserProfileResponse;
+import com.hotel.auth.entity.User;
+import com.hotel.auth.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/internal")
+@RequiredArgsConstructor
+public class InternalUserController {
+
+    private final UserRepository userRepository;
+
+    /**
+     * Internal API cho service-to-service communication
+     * Không cần authentication vì chỉ được gọi từ bên trong hệ thống
+     */
+    @GetMapping("/users/{userId}")
+    public ResponseEntity<UserProfileResponse> getUserProfile(@PathVariable String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfileResponse response = new UserProfileResponse(
+                user.getUserId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getFullname(),
+                user.getPhone(),
+                user.getRole()
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{userId}")
+    public void updateProfile(
+            @PathVariable String userId,
+            @RequestBody AuthUpdateProfileRequest req
+    ) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFullname(req.getFirstName() + " " + req.getLastName());
+        user.setPhone(req.getPhone());
+        userRepository.save(user);
+    }
+
+    @PostMapping("/users/{userId}/lock")
+    public ResponseEntity<?> lockUser(@PathVariable String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(false);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/users/{userId}/unlock")
+    public ResponseEntity<?> unlockUser(@PathVariable String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(true);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+}

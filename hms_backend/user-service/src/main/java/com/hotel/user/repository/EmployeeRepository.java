@@ -8,4 +8,5 @@ import java.util.Optional;
 public interface EmployeeRepository extends JpaRepository<Employee, String> {
 
     Optional<Employee> findByUserId(String userId);
+    long countByIsActiveTrue();
 }
