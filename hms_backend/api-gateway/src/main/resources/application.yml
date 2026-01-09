@@ -44,6 +44,14 @@ spring:
             - StripPrefix=1
             - AuthenticationFilter
 
+        # Payment Service Routes
+        - id: payment-service
+          uri: lb://payment-service
+          predicates:
+            - Path=/payment/**
+          filters:
+            - StripPrefix=1
+
       # CORS Configuration
       globalcors:
         add-to-simple-url-handler-mapping: true

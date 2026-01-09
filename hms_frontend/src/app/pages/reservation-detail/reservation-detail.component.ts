@@ -1,7 +1,8 @@
 import { Component, inject, OnInit, computed } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReservationDetailService } from '../../services/reservation-detail.service';
+import { PaymentService } from '../../services/payment.service';
 import { Location } from '@angular/common';
 
 @Component({
@@ -13,7 +14,9 @@ import { Location } from '@angular/common';
 })
 export class ReservationDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   readonly service = inject(ReservationDetailService);
+  private readonly paymentService = inject(PaymentService);
   private location = inject(Location);
 
   readonly detail = this.service.detail;
@@ -53,6 +56,13 @@ export class ReservationDetailComponent implements OnInit {
     if (!d) return false;
 
     return d.status === 'CONFIRMED' && d.paymentStatus === 'UNPAID';
+  });
+
+  readonly isCheckedIn = computed(() => {
+    const d = this.detail();
+    if (!d) return false;
+
+    return d.status === 'CHECKED_IN';
   });
 
   ngOnInit(): void {
@@ -97,7 +107,31 @@ export class ReservationDetailComponent implements OnInit {
     const d = this.detail();
     if (!d) return;
 
-    alert('Chức năng thanh toán đang được phát triển. Mã đặt phòng: ' + d.reservationCode);
+    if (!confirm(`Thanh toán ${this.formatVND(d.totalAmount)} cho đặt phòng ${d.reservationCode}?`)) {
+      return;
+    }
+
+    const returnUrl = `${window.location.origin}/payment/callback?reservationId=${d.reservationId}`;
+
+    this.paymentService.createVNPayPayment({
+      reservationId: d.reservationId,
+      amount: d.totalAmount,
+      orderInfo: `Thanh toan dat phong ${d.reservationCode}`,
+      returnUrl: returnUrl
+    }).subscribe({
+      next: (response) => {
+        if (response.success && response.data.paymentUrl) {
+          // Redirect to VNPay
+          window.location.href = response.data.paymentUrl;
+        } else {
+          alert(response.message || 'Không thể tạo link thanh toán');
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        alert(err?.error?.message || 'Không thể tạo link thanh toán');
+      }
+    });
   }
 
   formatVND(amount: number): string {

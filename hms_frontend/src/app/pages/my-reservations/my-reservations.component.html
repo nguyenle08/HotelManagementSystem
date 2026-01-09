@@ -79,16 +79,7 @@
               </div>
             </div>
             
-            @if (reservation.canCancelUntil && canCancel(reservation)) {
-            <div class="cancellation-notice">
-              <i class="icon-info"></i>
-              @if (isAfterCancelDeadline(reservation)) {
-              <span class="warning">⚠️ Hủy phòng sau {{ formatDate(reservation.canCancelUntil) }} sẽ bị phí 50%</span>
-              } @else {
-              <span class="info">Miễn phí hủy trước {{ formatDate(reservation.canCancelUntil) }}</span>
-              }
-            </div>
-            }
+            
           </div>
 
           <div class="card-footer">

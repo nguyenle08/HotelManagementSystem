@@ -135,10 +135,20 @@
       (click)="payNow()"
     >
       <i class="fa fa-credit-card"></i>
-      Thanh toán ngay
+      Thanh toán ngay (VNPay)
     </button>
 
-    <div class="lock-box" *ngIf="!canCancel()">
+    <div class="info-box payment-note" *ngIf="isCheckedIn()">
+      <i class="fa fa-info-circle"></i>
+      <div>
+        <strong>Thanh toán khi trả phòng</strong>
+        <p>
+          Bạn đã nhận phòng. Thanh toán sẽ được thực hiện khi checkout (trả phòng).
+        </p>
+      </div>
+    </div>
+
+    <div class="lock-box" *ngIf="!canCancel() && !isCheckedIn()">
       <i class="fa fa-lock"></i>
       <div>
         <strong>Không thể chỉnh sửa</strong>
@@ -150,11 +160,13 @@
   </div>
 
   <div class="info-card policy">
-    <h3>Chính sách hủy phòng</h3>
+    <h3>Chính sách hủy phòng & thanh toán</h3>
     <ul>
       <li>Miễn phí hủy phòng trước 24 giờ check-in</li>
       <li>Không hoàn tiền nếu hủy trong vòng 24 giờ trước check-in</li>
       <li>Không hoàn tiền nếu không đến</li>
+      <li><strong>Thanh toán trước:</strong> Thanh toán bằng VNPay khi đặt phòng (trạng thái Đã xác nhận)</li>
+      <li><strong>Thanh toán sau:</strong> Thanh toán khi checkout nếu đã nhận phòng (trạng thái Đã nhận phòng)</li>
     </ul>
   </div>
 </div>

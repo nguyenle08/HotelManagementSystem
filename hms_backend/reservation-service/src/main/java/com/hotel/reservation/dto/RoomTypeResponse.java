@@ -21,5 +21,6 @@ public class RoomTypeResponse {
     private List<String> amenities;
     private List<String> images;
     private Boolean isActive;
+    private Integer totalRooms;
     private Integer availableRooms;
 }

@@ -64,10 +64,12 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 String username = jwtUtil.extractUsername(token);
 
                 // Add user info to request headers for downstream services
+                // Keep the Authorization header for downstream services that need it
                 ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
                         .header("X-User-Id", userId)
                         .header("X-User-Role", role)
                         .header("X-Username", username)
+                        .header(HttpHeaders.AUTHORIZATION, authHeader) // Forward the Authorization header
                         .build();
 
                 return chain.filter(exchange.mutate().request(modifiedRequest).build());

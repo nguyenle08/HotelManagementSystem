@@ -55,6 +55,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(userId, null, authorities);
                     
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    
+                    // Debug log
+                    logger.info("JWT Authentication successful - UserID: " + userId + ", Authorities: " + authorities);
                 }
             } catch (Exception e) {
                 logger.error("JWT validation failed: " + e.getMessage());

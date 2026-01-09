@@ -218,6 +218,25 @@ public class ReservationService {
     return toResponse(saved, roomType);
   }
 
+  @Transactional
+  public ReservationResponse updatePaymentStatus(String reservationId, String status) {
+    Reservation reservation = reservationRepository
+      .findById(reservationId)
+      .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
+
+    // Cập nhật payment status
+    if ("PAID".equalsIgnoreCase(status)) {
+      reservation.setPaymentStatus(PaymentStatus.PAID);
+      reservation.setPaidAmount(reservation.getTotalAmount());
+    } else if ("FAILED".equalsIgnoreCase(status)) {
+      reservation.setPaymentStatus(PaymentStatus.FAILED);
+    }
+
+    Reservation saved = reservationRepository.save(reservation);
+    RoomTypeResponse roomType = getRoomTypeInfo(saved.getRoomTypeId());
+    return toResponse(saved, roomType);
+  }
+
   private void validateDates(LocalDate checkIn, LocalDate checkOut) {
     LocalDate today = LocalDate.now();
 

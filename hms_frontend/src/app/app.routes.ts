@@ -60,6 +60,13 @@ export const routes: Routes = [
             './pages/reservation-detail/reservation-detail.component'
           ).then((m) => m.ReservationDetailComponent),
       },
+      {
+        path: 'payment/callback',
+        loadComponent: () =>
+          import(
+            './pages/payment-callback/payment-callback.component'
+          ).then((m) => m.PaymentCallbackComponent),
+      },
     ],
   },
   // Admin routes

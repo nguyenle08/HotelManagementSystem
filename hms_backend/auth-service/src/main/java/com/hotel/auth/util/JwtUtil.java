@@ -23,13 +23,13 @@ public class JwtUtil {
 
     public String generateToken(String userId, String username, String role) {
         return Jwts.builder()
-                .setSubject(userId)
-                .claim("username", username)
-                .claim("role", role)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
+            .setSubject(userId)
+            .claim("username", username)
+            .claim("roles", java.util.List.of(role))
+            .setIssuedAt(new Date())
+            .setExpiration(new Date(System.currentTimeMillis() + expiration))
+            .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+            .compact();
     }
 
     public String generateRefreshToken(String userId) {

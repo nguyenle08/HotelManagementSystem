@@ -22,10 +22,17 @@ public class SecurityConfig {
       .authorizeHttpRequests(auth -> auth
         // Swagger UI endpoints
         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-        .requestMatchers("/reservation/api/reservations/all").hasAnyRole("STAFF", "ADMIN", "MANAGER")
-        .requestMatchers("/reservation/api/reservations/*/check-in").hasAnyRole("STAFF", "ADMIN", "MANAGER")
-        .requestMatchers("/reservation/api/reservations/*/check-out").hasAnyRole("STAFF", "ADMIN", "MANAGER")
-        .requestMatchers("/reservation/api/reservations/**").hasAnyRole("USER", "STAFF", "ADMIN", "MANAGER")
+        // Internal endpoints - no auth required
+        .requestMatchers("/api/reservations/*/payment").permitAll()
+        // User specific endpoints - must come before wildcard
+        .requestMatchers("/api/reservations/my-reservations").hasAnyRole("USER", "STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/api/reservations").hasAnyRole("USER", "STAFF", "ADMIN", "MANAGER")
+        // Staff/Admin endpoints
+        .requestMatchers("/api/reservations/all").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/api/reservations/*/check-in").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        .requestMatchers("/api/reservations/*/check-out").hasAnyRole("STAFF", "ADMIN", "MANAGER")
+        // User endpoints - must come last
+        .requestMatchers("/api/reservations/**").hasAnyRole("USER", "STAFF", "ADMIN", "MANAGER")
         .anyRequest().authenticated()
       )
       .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
