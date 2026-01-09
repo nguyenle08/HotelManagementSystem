@@ -3,9 +3,25 @@ export interface AdminDashboardStats {
   activeUsers: number;
   staffCount: number;
   lockedAccounts: number;
-  roleStats: Array<{ role: string; count: number; percent: number }>;
-  accountStatus: Array<{ status: string; count: number; percent: number }>;
-  recentActivities: Array<{ type: string; message: string; time: string }>;
+  roleStats: RoleStat[];
+  accountStatus: AccountStatus[];
+  recentActivities: RecentActivity[];
+}
+
+export interface RoleStat {
+  role: string;
+  count: number;
+  percent: number;
+}
+
+export interface AccountStatus {
+  status: string;
+  count: number;
+}
+
+export interface RecentActivity {
+  message: string;
+  time: string;
 }
 
 export interface AdminUser {
@@ -14,6 +30,7 @@ export interface AdminUser {
   fullName: string;
   email: string;
   phone: string;
+  password?: string; // Only for creation
   role: string;
   status: string;
   lastLogin: string;

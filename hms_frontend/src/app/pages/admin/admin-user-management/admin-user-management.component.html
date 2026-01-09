@@ -9,7 +9,7 @@
       <button class="btn-secondary" (click)="exportToCSV()">
         <span>📥</span> Xuất Excel
       </button>
-      <button class="btn-primary" routerLink="/admin/users/new">
+      <button class="btn-primary" (click)="openCreateForm()">
         <span>➕</span> Thêm tài khoản
       </button>
     </div>
@@ -84,6 +84,130 @@
   <div *ngIf="error && !loading" class="alert-error">
     <span>⚠️ {{ error }}</span>
     <button class="btn-retry" (click)="loadUsers()">Thử lại</button>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div *ngIf="showForm && !loading && !error" class="form-section">
+    <div class="form-card">
+      <div class="form-header">
+        <h2>{{ isEditMode ? 'Chỉnh sửa tài khoản' : 'Thêm tài khoản mới' }}</h2>
+        <button class="btn-close" (click)="cancelForm()">✕</button>
+      </div>
+
+      <div *ngIf="formError" class="alert-error">
+        <span>⚠️ {{ formError }}</span>
+      </div>
+
+      <form (ngSubmit)="onSubmitForm()">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="username">Tên đăng nhập <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="username"
+              [(ngModel)]="formData.username"
+              name="username"
+              [disabled]="isEditMode"
+              required
+              placeholder="Nhập tên đăng nhập"
+              class="form-input"
+            />
+            <small class="form-hint" *ngIf="!isEditMode">Tên đăng nhập không thể thay đổi sau khi tạo</small>
+          </div>
+
+          <div class="form-group">
+            <label for="fullName">Họ và tên <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="fullName"
+              [(ngModel)]="formData.fullName"
+              name="fullName"
+              required
+              placeholder="Nguyễn Văn A"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input 
+              type="email" 
+              id="email"
+              [(ngModel)]="formData.email"
+              name="email"
+              placeholder="email@example.com"
+              class="form-input"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Số điện thoại</label>
+            <input 
+              type="tel" 
+              id="phone"
+              [(ngModel)]="formData.phone"
+              name="phone"
+              placeholder="0901234567"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="role">Vai trò <span class="required">*</span></label>
+            <select 
+              id="role"
+              [(ngModel)]="formData.role"
+              name="role"
+              required
+              class="form-select"
+            >
+              <option value="USER">Khách hàng (USER)</option>
+              <option value="STAFF">Nhân viên (STAFF)</option>
+              <option value="MANAGER">Quản lý (MANAGER)</option>
+              <option value="ADMIN">Quản trị viên (ADMIN)</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="!isEditMode">
+            <label for="password">Mật khẩu <span class="required">*</span></label>
+            <input 
+              type="password" 
+              id="password"
+              [(ngModel)]="formData.password"
+              name="password"
+              required
+              placeholder="Nhập mật khẩu"
+              class="form-input"
+            />
+            <small class="form-hint">Tối thiểu 8 ký tự</small>
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="isEditMode">
+          <label>Trạng thái hiện tại</label>
+          <div class="status-info">
+            <span class="badge" [ngClass]="formData.status === 'ACTIVE' ? 'badge-active' : 'badge-locked'">
+              {{ formData.status }}
+            </span>
+            <small class="form-hint">Sử dụng nút khóa/mở khóa trong danh sách để thay đổi trạng thái</small>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="cancelForm()">
+            Hủy
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="formLoading">
+            <span *ngIf="formLoading" class="spinner-small"></span>
+            {{ formLoading ? 'Đang xử lý...' : (isEditMode ? 'Lưu thay đổi' : 'Tạo tài khoản') }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- User List -->
@@ -163,15 +287,9 @@
             <td class="actions-column">
               <div class="action-buttons">
                 <button 
-                  class="btn-action btn-view" 
-                  title="Chi tiết"
-                  [routerLink]="['/admin/users', user.userId]">
-                  👁️
-                </button>
-                <button 
                   class="btn-action btn-edit" 
                   title="Sửa"
-                  [routerLink]="['/admin/users', user.userId, 'edit']">
+                  (click)="openEditForm(user)">
                   ✏️
                 </button>
                 <button 

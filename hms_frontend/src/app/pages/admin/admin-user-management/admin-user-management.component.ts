@@ -21,6 +21,23 @@ export class AdminUserManagementComponent implements OnInit {
   selectedRole = 'all';
   selectedStatus = 'all';
 
+  // Form states
+  showForm = false;
+  isEditMode = false;
+  formLoading = false;
+  formError = '';
+  
+  formData: any = {
+    userId: '',
+    username: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    role: 'USER',
+    password: '',
+    status: 'ACTIVE'
+  };
+
   // Statistics
   totalUsers = 0;
   activeUsers = 0;
@@ -36,13 +53,88 @@ export class AdminUserManagementComponent implements OnInit {
     this.loadUsers();
   }
 
+  openCreateForm(): void {
+    this.isEditMode = false;
+    this.showForm = true;
+    this.formError = '';
+    this.resetForm();
+  }
+
+  openEditForm(user: AdminUser): void {
+    this.isEditMode = true;
+    this.showForm = true;
+    this.formError = '';
+    this.formData = { ...user };
+    this.scrollToForm();
+  }
+
+  cancelForm(): void {
+    this.showForm = false;
+    this.resetForm();
+    this.formError = '';
+  }
+
+  resetForm(): void {
+    this.formData = {
+      userId: '',
+      username: '',
+      fullName: '',
+      email: '',
+      phone: '',
+      role: 'USER',
+      password: '',
+      status: 'ACTIVE'
+    };
+  }
+
+  scrollToForm(): void {
+    setTimeout(() => {
+      const formElement = document.querySelector('.form-section');
+      formElement?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
+  onSubmitForm(): void {
+    this.formError = '';
+    this.formLoading = true;
+
+    if (this.isEditMode) {
+      this.adminService.updateUser(this.formData.userId, this.formData).subscribe({
+        next: () => {
+          this.formLoading = false;
+          this.showForm = false;
+          this.showSuccess('Cập nhật tài khoản thành công');
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.formLoading = false;
+          this.formError = 'Không thể cập nhật tài khoản: ' + (err?.error?.message || err.message || 'Lỗi không xác định');
+        }
+      });
+    } else {
+      this.adminService.createUser(this.formData).subscribe({
+        next: () => {
+          this.formLoading = false;
+          this.showForm = false;
+          this.showSuccess('Tạo tài khoản thành công');
+          this.loadUsers();
+        },
+        error: (err) => {
+          this.formLoading = false;
+          this.formError = 'Không thể tạo tài khoản: ' + (err?.error?.message || err.message || 'Lỗi không xác định');
+        }
+      });
+    }
+  }
+
   loadUsers(): void {
     this.loading = true;
     this.error = '';
     this.adminService.getUsers().subscribe({
       next: (data) => {
-        this.users = data;
-        this.filteredUsers = data;
+        // Normalize incoming data so role/status shapes are consistent
+        this.users = data.map(u => this.normalizeUser(u));
+        this.filteredUsers = this.users.slice();
         this.calculateStats();
         this.loading = false;
       },
@@ -52,6 +144,37 @@ export class AdminUserManagementComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  /**
+   * Normalize user payload coming from backend.
+   * Some services return `role` as an array (`roles`) or with prefixes like `ROLE_MANAGER`.
+   */
+  normalizeUser(u: any): AdminUser {
+    const roleRaw = (u.role ?? u.roles ?? (Array.isArray(u.roles) ? u.roles[0] : undefined));
+    let role = '';
+    if (Array.isArray(roleRaw)) {
+      role = (roleRaw[0] || '').toString();
+    } else {
+      role = (roleRaw || '').toString();
+    }
+
+    // handle cases like 'ROLE_MANAGER' or 'Manager' or 'manager'
+    role = role.toUpperCase().replace(/^ROLE_/i, '') || 'USER';
+
+    const status = (u.status || '').toString().toUpperCase() || 'UNKNOWN';
+
+    return {
+      userId: u.userId || u.id || '',
+      username: u.username || u.userName || '',
+      fullName: u.fullName || u.full_name || '',
+      email: u.email || '',
+      phone: u.phone || '',
+      password: u.password,
+      role,
+      status,
+      lastLogin: u.lastLogin || u.last_login || ''
+    };
   }
 
   calculateStats(): void {
@@ -95,12 +218,12 @@ export class AdminUserManagementComponent implements OnInit {
     if (confirm(`Bạn có chắc muốn khóa tài khoản "${username}"?`)) {
       this.adminService.lockUser(userId).subscribe({
         next: () => {
-          alert('Đã khóa tài khoản thành công');
+          this.showSuccess('Đã khóa tài khoản thành công');
           this.loadUsers();
         },
         error: (err) => {
           console.error('Error locking user:', err);
-          alert('Không thể khóa tài khoản');
+          this.showError('Không thể khóa tài khoản');
         }
       });
     }
@@ -110,12 +233,12 @@ export class AdminUserManagementComponent implements OnInit {
     if (confirm(`Bạn có chắc muốn mở khóa tài khoản "${username}"?`)) {
       this.adminService.unlockUser(userId).subscribe({
         next: () => {
-          alert('Đã mở khóa tài khoản thành công');
+          this.showSuccess('Đã mở khóa tài khoản thành công');
           this.loadUsers();
         },
         error: (err) => {
           console.error('Error unlocking user:', err);
-          alert('Không thể mở khóa tài khoản');
+          this.showError('Không thể mở khóa tài khoản');
         }
       });
     }
@@ -125,12 +248,12 @@ export class AdminUserManagementComponent implements OnInit {
     if (confirm(`⚠️ CẢNH BÁO: Bạn có chắc muốn XÓA VĨNH VIỄN tài khoản "${username}"?\n\nHành động này không thể hoàn tác!`)) {
       this.adminService.deleteUser(userId).subscribe({
         next: () => {
-          alert('Đã xóa tài khoản thành công');
+          this.showSuccess('Đã xóa tài khoản thành công');
           this.loadUsers();
         },
         error: (err) => {
           console.error('Error deleting user:', err);
-          alert('Chức năng xóa tài khoản chưa được triển khai');
+          this.showError('Không thể xóa tài khoản');
         }
       });
     }
@@ -156,7 +279,6 @@ export class AdminUserManagementComponent implements OnInit {
   }
 
   exportToCSV(): void {
-    // Simple CSV export functionality
     const headers = ['Username', 'Full Name', 'Email', 'Phone', 'Role', 'Status'];
     const rows = this.filteredUsers.map(u => [
       u.username || '',
@@ -177,5 +299,15 @@ export class AdminUserManagementComponent implements OnInit {
     link.href = URL.createObjectURL(blob);
     link.download = `users_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
+  }
+
+  private showSuccess(message: string): void {
+    // You can implement a toast notification here
+    alert(message);
+  }
+
+  private showError(message: string): void {
+    // You can implement a toast notification here
+    alert(message);
   }
 }
