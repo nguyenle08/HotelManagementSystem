@@ -3,10 +3,8 @@ package com.hotel.reservation.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hotel.reservation.client.UserServiceClient;
-import com.hotel.reservation.dto.CreateReservationRequest;
-import com.hotel.reservation.dto.ReservationResponse;
-import com.hotel.reservation.dto.RoomTypeResponse;
-import com.hotel.reservation.dto.UserProfileResponse;
+import com.hotel.reservation.dto.*;
+import com.hotel.reservation.dto.dashboard.*;
 import com.hotel.reservation.entity.PaymentStatus;
 import com.hotel.reservation.entity.Reservation;
 import com.hotel.reservation.entity.ReservationStatus;
@@ -20,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -363,6 +362,76 @@ public class ReservationService {
     } catch (Exception e) {
       throw new RuntimeException("Failed to unlock rooms: " + e.getMessage());
     }
+  }
+
+
+  public DashboardResponse getDashboardData() {
+    LocalDate today = LocalDate.now();
+
+    TodayAction[] todayActions = reservationRepository.findByCheckInDateOrCheckOutDate(today, today)
+      .stream()
+      .map(r -> mapToTodayAction(r, today))
+      .filter(a -> a != null) // lọc trường hợp không thỏa điều kiện
+      .toArray(TodayAction[]::new);
+
+    RoomSnapshot roomSnapshot;
+    try {
+      roomSnapshot = restTemplate.getForObject(
+        "http://room-service/internal/rooms/snapshot", RoomSnapshot.class
+      );
+    } catch (Exception e) {
+      roomSnapshot = new RoomSnapshot(); // mặc định 0
+    }
+
+    AlertItem[] alerts;
+    try {
+      alerts = restTemplate.getForObject(
+        "http://room-service/internal/rooms/alerts", AlertItem[].class
+      );
+    } catch (Exception e) {
+      alerts = new AlertItem[0];
+    }
+
+    DashboardSummary summary = new DashboardSummary();
+    summary.setCheckInToday((int) Arrays.stream(todayActions).filter(a -> "CHECKIN".equals(a.getType())).count());
+    summary.setCheckOutToday((int) Arrays.stream(todayActions).filter(a -> "CHECKOUT".equals(a.getType())).count());
+    summary.setOverdue((int) Arrays.stream(todayActions).filter(a -> "OVERDUE".equals(a.getType())).count());
+
+    DashboardResponse response = new DashboardResponse();
+    response.setTodayActions(todayActions);
+    response.setRoomSnapshot(roomSnapshot);
+    response.setAlerts(alerts);
+    response.setSummary(summary);
+
+    return response;
+  }
+
+  /**
+   * Map Reservation -> TodayAction
+   */
+  private TodayAction mapToTodayAction(Reservation r, LocalDate today) {
+    TodayAction action = new TodayAction();
+    action.setReservationId(r.getReservationId());
+    action.setGuestName(r.getGuestFullName());
+    action.setRoomNumber(r.getRoomTypeName());
+
+    if (r.getCheckInDate().isEqual(today) && r.getStatus() == ReservationStatus.CONFIRMED) {
+      action.setType("CHECKIN");
+      action.setTypeLabel("Check-in hôm nay");
+      action.setTime(r.getCheckInDate().toString());
+    } else if (r.getCheckOutDate().isEqual(today) && r.getStatus() == ReservationStatus.CHECKED_IN) {
+      action.setType("CHECKOUT");
+      action.setTypeLabel("Check-out hôm nay");
+      action.setTime(r.getCheckOutDate().toString());
+    } else if (r.getStatus() == ReservationStatus.CONFIRMED && r.getCheckInDate().isBefore(today)) {
+      action.setType("OVERDUE");
+      action.setTypeLabel("Quá hạn check-in");
+      action.setTime(r.getCheckInDate().toString());
+    } else {
+      return null;
+    }
+
+    return action;
   }
 
 }
