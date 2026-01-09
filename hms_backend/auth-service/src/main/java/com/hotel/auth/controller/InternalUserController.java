@@ -49,4 +49,22 @@ public class InternalUserController {
         user.setPhone(req.getPhone());
         userRepository.save(user);
     }
+
+    @PostMapping("/users/{userId}/lock")
+    public ResponseEntity<?> lockUser(@PathVariable String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(false);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/users/{userId}/unlock")
+    public ResponseEntity<?> unlockUser(@PathVariable String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setIsActive(true);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
 }

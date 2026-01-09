@@ -1,0 +1,211 @@
+<div class="user-management">
+  <!-- Page Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1>Quản lý tài khoản</h1>
+      <p class="subtitle">Quản lý người dùng và phân quyền hệ thống</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="exportToCSV()">
+        <span>📥</span> Xuất Excel
+      </button>
+      <button class="btn-primary" routerLink="/admin/users/new">
+        <span>➕</span> Thêm tài khoản
+      </button>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-overview">
+    <div class="stat-item">
+      <div class="stat-icon total">👥</div>
+      <div class="stat-info">
+        <span class="stat-label">Tổng</span>
+        <span class="stat-value">{{ totalUsers }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon active">✅</div>
+      <div class="stat-info">
+        <span class="stat-label">Hoạt động</span>
+        <span class="stat-value">{{ activeUsers }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon locked">🔒</div>
+      <div class="stat-info">
+        <span class="stat-label">Bị khóa</span>
+        <span class="stat-value">{{ lockedUsers }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon admin">🛡️</div>
+      <div class="stat-info">
+        <span class="stat-label">Admin</span>
+        <span class="stat-value">{{ adminCount }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon manager">👔</div>
+      <div class="stat-info">
+        <span class="stat-label">Quản lý</span>
+        <span class="stat-value">{{ managerCount }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon staff">👨‍💼</div>
+      <div class="stat-info">
+        <span class="stat-label">Nhân viên</span>
+        <span class="stat-value">{{ staffCount }}</span>
+      </div>
+    </div>
+
+    <div class="stat-item">
+      <div class="stat-icon user">👤</div>
+      <div class="stat-info">
+        <span class="stat-label">Khách</span>
+        <span class="stat-value">{{ userCount }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Đang tải danh sách người dùng...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="alert-error">
+    <span>⚠️ {{ error }}</span>
+    <button class="btn-retry" (click)="loadUsers()">Thử lại</button>
+  </div>
+
+  <!-- User List -->
+  <div *ngIf="!loading && !error" class="user-list-container">
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          placeholder="Tìm kiếm theo tên, email hoặc username..." 
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange()"
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-group">
+        <select [(ngModel)]="selectedRole" (change)="onRoleFilterChange()" class="filter-select">
+          <option value="all">Tất cả vai trò</option>
+          <option value="ADMIN">Admin</option>
+          <option value="MANAGER">Manager</option>
+          <option value="STAFF">Staff</option>
+          <option value="USER">User</option>
+        </select>
+
+        <select [(ngModel)]="selectedStatus" (change)="onStatusFilterChange()" class="filter-select">
+          <option value="all">Tất cả trạng thái</option>
+          <option value="ACTIVE">Hoạt động</option>
+          <option value="LOCKED">Bị khóa</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="results-summary">
+      <p>Hiển thị <strong>{{ filteredUsers.length }}</strong> / {{ totalUsers }} tài khoản</p>
+    </div>
+
+    <!-- Users Table -->
+    <div class="table-wrapper">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>Tài khoản</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Số điện thoại</th>
+            <th>Vai trò</th>
+            <th>Trạng thái</th>
+            <th>Đăng nhập cuối</th>
+            <th class="actions-column">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers" class="user-row">
+            <td>
+              <div class="user-cell">
+                <div class="user-avatar">{{ (user.username || 'U')[0].toUpperCase() }}</div>
+                <span class="username">{{ user.username || 'N/A' }}</span>
+              </div>
+            </td>
+            <td>{{ user.fullName || 'Chưa cập nhật' }}</td>
+            <td>{{ user.email || 'N/A' }}</td>
+            <td>{{ user.phone || 'N/A' }}</td>
+            <td>
+              <span class="badge" [ngClass]="getRoleBadgeClass(user.role)">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="getStatusBadgeClass(user.status)">
+                {{ user.status }}
+              </span>
+            </td>
+            <td>{{ user.lastLogin || 'Chưa đăng nhập' }}</td>
+            <td class="actions-column">
+              <div class="action-buttons">
+                <button 
+                  class="btn-action btn-view" 
+                  title="Chi tiết"
+                  [routerLink]="['/admin/users', user.userId]">
+                  👁️
+                </button>
+                <button 
+                  class="btn-action btn-edit" 
+                  title="Sửa"
+                  [routerLink]="['/admin/users', user.userId, 'edit']">
+                  ✏️
+                </button>
+                <button 
+                  *ngIf="user.status === 'ACTIVE'"
+                  class="btn-action btn-lock" 
+                  title="Khóa tài khoản"
+                  (click)="lockUser(user.userId, user.username)">
+                  🔒
+                </button>
+                <button 
+                  *ngIf="user.status === 'LOCKED'"
+                  class="btn-action btn-unlock" 
+                  title="Mở khóa"
+                  (click)="unlockUser(user.userId, user.username)">
+                  🔓
+                </button>
+                <button 
+                  class="btn-action btn-delete" 
+                  title="Xóa"
+                  (click)="deleteUser(user.userId, user.username)">
+                  🗑️
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredUsers.length === 0" class="empty-state">
+        <p class="empty-icon">🔍</p>
+        <h3>Không tìm thấy người dùng</h3>
+        <p>Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+      </div>
+    </div>
+  </div>
+</div>

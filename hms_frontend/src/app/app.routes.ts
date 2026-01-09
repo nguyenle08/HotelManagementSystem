@@ -83,8 +83,15 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         loadComponent: () =>
-          import('./pages/admin/admin-dashboard.component').then(
+          import('./pages/admin/admin-dashboard/admin-dashboard.component').then(
             (m) => m.AdminDashboardComponent
+          ),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./pages/admin/admin-user-management/admin-user-management.component').then(
+            (m) => m.AdminUserManagementComponent
           ),
       },
     ],
