@@ -60,13 +60,6 @@ export const routes: Routes = [
             './pages/reservation-detail/reservation-detail.component'
           ).then((m) => m.ReservationDetailComponent),
       },
-      {
-        path: 'payment/callback',
-        loadComponent: () =>
-          import(
-            './pages/payment-callback/payment-callback.component'
-          ).then((m) => m.PaymentCallbackComponent),
-      },
     ],
   },
   // Admin routes
@@ -176,6 +169,12 @@ export const routes: Routes = [
             (m) => m.ManagerReportComponent
           ),
       },
+      {
+        path: 'staff',
+        loadComponent: () =>
+          import('./pages/manager/employee-management/employee-management.component')
+            .then((m) => m.EmployeeManagementComponent),
+      }
     ],
   },
   // Fallback route
