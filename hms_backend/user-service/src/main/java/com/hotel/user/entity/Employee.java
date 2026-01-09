@@ -54,5 +54,8 @@ public class Employee {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    private String fullname;
+    private String phone;
 }
 
