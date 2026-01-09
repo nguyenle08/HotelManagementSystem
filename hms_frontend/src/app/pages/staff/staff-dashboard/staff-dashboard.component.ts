@@ -46,6 +46,7 @@ export class StaffDashboardComponent implements OnInit {
     this.loadDashboard();
   }
 
+
   loadDashboard(): void {
     this.loading.set(true);
     this.error.set(null);
@@ -69,23 +70,29 @@ export class StaffDashboardComponent implements OnInit {
           });
         }
 
-        if (res.rooms?.data) {
+        // If reservation dashboard already provided a roomSnapshot, prefer it
+        // Otherwise derive a snapshot from the raw room statuses
+        if (res.rooms?.data && !(dashData && dashData.roomSnapshot)) {
           const roomsArray = res.rooms.data as any[];
           this.roomSnapshot.set({
             available: roomsArray.filter(
-              (r) => r.status === 'ACTIVE' || r.status === 'AVAILABLE'
+              (r) => r.status === 'ACTIVE'
             ).length,
             occupied: roomsArray.filter(
-              (r) => r.status === 'OCCUPIED' || r.guestName
+              (r) => r.status === 'OCCUPIED' || r.status === 'RESERVED'
             ).length,
             cleaning: roomsArray.filter(
-              (r) => r.status === 'DECOMMISSIONED' || r.status === 'CLEANING'
+              (r) => r.status === 'DECOMMISSIONED'
             ).length,
             attention: roomsArray.filter((r) => r.status === 'MAINTENANCE')
               .length,
             cleaningOverdue: 0,
           });
+        } else if (dashData && dashData.roomSnapshot) {
+          // Use the snapshot from backend if available
+          this.roomSnapshot.set(dashData.roomSnapshot);
         }
+
         this.loading.set(false);
       },
       error: (err) => {

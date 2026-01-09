@@ -194,6 +194,15 @@ public class ReservationService {
     reservation.setActualCheckInTime(LocalDateTime.now());
 
     Reservation saved = reservationRepository.save(reservation);
+    
+    // Update room availability status to OCCUPIED
+    try {
+      updateRoomStatusToOccupied(reservationId);
+    } catch (Exception e) {
+      System.err.println("Failed to update room status to OCCUPIED: " + e.getMessage());
+      // Don't fail the check-in if room status update fails
+    }
+    
     RoomTypeResponse roomType = getRoomTypeInfo(saved.getRoomTypeId());
     return toResponse(saved, roomType);
   }
@@ -213,9 +222,19 @@ public class ReservationService {
     reservation.setActualCheckOutTime(LocalDateTime.now());
 
     Reservation saved = reservationRepository.save(reservation);
+    
+    // Unlock rooms in room-service (delete availability records)
+    try {
+      unlockRoomsForReservation(reservationId);
+    } catch (Exception e) {
+      System.err.println("Failed to unlock rooms: " + e.getMessage());
+      // Don't fail the check-out if room unlock fails
+    }
+    
     RoomTypeResponse roomType = getRoomTypeInfo(saved.getRoomTypeId());
     return toResponse(saved, roomType);
   }
+
 
   @Transactional
   public ReservationResponse updatePaymentStatus(String reservationId, String status) {
@@ -363,6 +382,27 @@ public class ReservationService {
       throw new RuntimeException("Failed to unlock rooms: " + e.getMessage());
     }
   }
+
+  /**
+   * Gọi room-service để update availability status to OCCUPIED
+   */
+  private void updateRoomStatusToOccupied(String reservationId) {
+    try {
+      String url = "http://room-service/internal/rooms/update-to-occupied";
+
+      String requestBody = String.format("{\"reservationId\":\"%s\"}", reservationId);
+
+      org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+      headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+
+      org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(requestBody, headers);
+
+      restTemplate.postForObject(url, entity, String.class);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to update room status to OCCUPIED: " + e.getMessage());
+    }
+  }
+
 
 
   public DashboardResponse getDashboardData() {

@@ -13,6 +13,7 @@ import com.hotel.room.repository.RoomAvailabilityRepository;
 import com.hotel.room.repository.RoomRepository;
 import com.hotel.room.repository.RoomTypeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,6 +31,7 @@ public class RoomService {
   private final RoomTypeRepository roomTypeRepository;
   private final RoomRepository roomRepository;
   private final RoomAvailabilityRepository availabilityRepository;
+  private final RestTemplate restTemplate;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private List<String> parseJsonList(String json) {
@@ -54,10 +56,43 @@ public class RoomService {
     roomTypes.stream()
       .filter(rt -> rt.getRoomTypeId().equals(room.getRoomTypeId()))
       .findFirst()
-      .ifPresent(rt -> resp.setRoomTypeName(rt.getName()));
+      .ifPresent(rt -> {
+        resp.setRoomTypeName(rt.getName());
+        resp.setImages(parseJsonList(rt.getImages()));
+      });
+
+    // Check today's availability records and include reservation info when present
+    try {
+      java.time.LocalDate today = java.time.LocalDate.now();
+      List<RoomAvailability> locks = availabilityRepository.findByRoomIdAndDate(room.getRoomId(), today);
+      if (locks != null && !locks.isEmpty()) {
+        RoomAvailability lock = locks.get(0);
+        // Use the actual status from availability record (RESERVED or OCCUPIED)
+        resp.setStatus(lock.getStatus());
+        resp.setReservationId(lock.getReservationId());
+
+        if (lock.getReservationId() != null) {
+          try {
+            String url = "http://reservation-service/internal/reservations/" + lock.getReservationId();
+            String json = restTemplate.getForObject(url, String.class);
+            if (json != null && !json.isEmpty()) {
+              com.fasterxml.jackson.databind.JsonNode node = objectMapper.readTree(json);
+              if (node.hasNonNull("guestFullName")) resp.setGuestName(node.get("guestFullName").asText());
+              if (node.hasNonNull("checkInDate")) resp.setCheckInDate(node.get("checkInDate").asText());
+              if (node.hasNonNull("checkOutDate")) resp.setCheckOutDate(node.get("checkOutDate").asText());
+            }
+          } catch (Exception e) {
+            // ignore reservation lookup failures
+          }
+        }
+      }
+    } catch (Exception e) {
+      // ignore availability lookup errors
+    }
 
     return resp;
   }
+
 
   public List<RoomStatusResponse> getAllRoomsWithStatus() {
     List<Room> rooms = roomRepository.findAll();
@@ -236,6 +271,21 @@ public class RoomService {
 
     availabilityRepository.deleteAll(availabilities);
   }
+
+  /**
+   * Update room availability status to OCCUPIED when checking in
+   */
+  public void updateRoomAvailabilityToOccupied(String reservationId) {
+    List<RoomAvailability> availabilities = availabilityRepository
+      .findByReservationId(reservationId);
+
+    for (RoomAvailability availability : availabilities) {
+      availability.setStatus("OCCUPIED");
+      availability.setUpdatedAt(LocalDateTime.now());
+      availabilityRepository.save(availability);
+    }
+  }
+
 
   /**
    * TESTING ONLY - Xóa availability records sau một ngày cụ thể

@@ -6,7 +6,7 @@
 		</div>
 		<div class="summary-card">
 			<div class="summary-label">Trống</div>
-			<div class="summary-value text-green">{{ activeRooms }}</div>
+			<div class="summary-value text-green">{{ freeRooms }}</div>
 		</div>
 		<div class="summary-card">
 			<div class="summary-label">Bảo trì</div>
@@ -20,18 +20,15 @@
 	</div>
 
 	<div class="filter-bar">
-		<input
-			type="text"
-			class="filter-input"
-			placeholder="Tìm kiếm theo số phòng hoặc loại phòng..."
-			[(ngModel)]="searchTerm"
-			(input)="applyFilter()"
-		/>
+		<input type="text" class="filter-input" placeholder="Tìm kiếm theo số phòng hoặc loại phòng..."
+			[(ngModel)]="searchTerm" (input)="applyFilter()" />
 
 		<select class="filter-select" [(ngModel)]="filterStatus" (change)="applyFilter()">
 			<option value="ALL">Tất cả trạng thái</option>
 			<option value="ACTIVE">Trống</option>
 			<option value="MAINTENANCE">Bảo trì</option>
+			<option value="OCCUPIED">Đang sử dụng</option>
+			<option value="RESERVED">Đã đặt trước</option>
 			<option value="DECOMMISSIONED">Ngừng sử dụng</option>
 		</select>
 	</div>
@@ -54,6 +51,7 @@
 		<table class="room-table">
 			<thead>
 				<tr>
+					<th>Ảnh</th>
 					<th>Số phòng</th>
 					<th>Tầng</th>
 					<th>Loại phòng</th>
@@ -63,18 +61,20 @@
 			</thead>
 			<tbody>
 				<tr *ngFor="let room of filteredRooms">
+					<td>
+						<img [src]="getRoomImage(room)" alt="Ảnh" class="room-thumbnail" />
+					</td>
 					<td>{{ room.roomNumber }}</td>
 					<td>Tầng {{ room.floor }}</td>
 					<td>{{ room.roomTypeName || getRoomTypeName(room.roomTypeId) }}</td>
 					<td>
-						<span
-							class="status-badge"
-							[ngClass]="{
+						<span class="status-badge" [ngClass]="{
 								'status-active': room.status === 'ACTIVE',
 								'status-maintenance': room.status === 'MAINTENANCE',
-								'status-decommissioned': room.status === 'DECOMMISSIONED'
-							}"
-						>
+								'status-decommissioned': room.status === 'DECOMMISSIONED',
+								'status-occupied': room.status === 'OCCUPIED',
+								'status-reserved': room.status === 'RESERVED'
+							}">
 							{{ getStatusLabel(room.status) }}
 						</span>
 					</td>
@@ -104,30 +104,18 @@
 				<div class="form-row">
 					<div class="form-group">
 						<label>Số phòng</label>
-						<input
-							type="text"
-							class="form-control"
-							[(ngModel)]="roomForm.roomNumber"
-						/>
+						<input type="text" class="form-control" [(ngModel)]="roomForm.roomNumber" />
 					</div>
 					<div class="form-group">
 						<label>Tầng</label>
-						<input
-							type="number"
-							class="form-control"
-							[(ngModel)]="roomForm.floor"
-							min="1"
-						/>
+						<input type="number" class="form-control" [(ngModel)]="roomForm.floor" min="1" />
 					</div>
 				</div>
 
 				<div class="form-row">
 					<div class="form-group">
 						<label>Loại phòng</label>
-						<select
-							class="form-control"
-							[(ngModel)]="roomForm.roomTypeId"
-						>
+						<select class="form-control" [(ngModel)]="roomForm.roomTypeId">
 							<option *ngFor="let rt of roomTypes" [value]="rt.roomTypeId">
 								{{ rt.name }}
 							</option>
@@ -135,10 +123,7 @@
 					</div>
 					<div class="form-group">
 						<label>Trạng thái</label>
-						<select
-							class="form-control"
-							[(ngModel)]="roomForm.status"
-						>
+						<select class="form-control" [(ngModel)]="roomForm.status">
 							<option value="ACTIVE">Trống</option>
 							<option value="MAINTENANCE">Bảo trì</option>
 							<option value="DECOMMISSIONED">Ngừng sử dụng</option>
@@ -170,30 +155,18 @@
 				<div class="form-row">
 					<div class="form-group">
 						<label>Số phòng</label>
-						<input
-							type="text"
-							class="form-control"
-							[(ngModel)]="roomForm.roomNumber"
-						/>
+						<input type="text" class="form-control" [(ngModel)]="roomForm.roomNumber" />
 					</div>
 					<div class="form-group">
 						<label>Tầng</label>
-						<input
-							type="number"
-							class="form-control"
-							[(ngModel)]="roomForm.floor"
-							min="1"
-						/>
+						<input type="number" class="form-control" [(ngModel)]="roomForm.floor" min="1" />
 					</div>
 				</div>
 
 				<div class="form-row">
 					<div class="form-group">
 						<label>Loại phòng</label>
-						<select
-							class="form-control"
-							[(ngModel)]="roomForm.roomTypeId"
-						>
+						<select class="form-control" [(ngModel)]="roomForm.roomTypeId">
 							<option *ngFor="let rt of roomTypes" [value]="rt.roomTypeId">
 								{{ rt.name }}
 							</option>
@@ -201,14 +174,14 @@
 					</div>
 					<div class="form-group">
 						<label>Trạng thái</label>
-						<select
-							class="form-control"
-							[(ngModel)]="roomForm.status"
-						>
+						<select class="form-control" [(ngModel)]="roomForm.status">
 							<option value="ACTIVE">Trống</option>
+							<option value="RESERVED">Đã đặt trước</option>
+							<option value="OCCUPIED">Đang sử dụng</option>
 							<option value="MAINTENANCE">Bảo trì</option>
 							<option value="DECOMMISSIONED">Ngừng sử dụng</option>
 						</select>
+
 					</div>
 				</div>
 

@@ -14,4 +14,10 @@ public class RoomStatusResponse {
   private String status; // ACTIVE, MAINTENANCE, DECOMMISSIONED
   private String roomTypeId;
   private String roomTypeName;
+  private java.util.List<String> images;
+  // Optional reservation info when room is locked/occupied
+  private String reservationId;
+  private String guestName;
+  private String checkInDate;
+  private String checkOutDate;
 }

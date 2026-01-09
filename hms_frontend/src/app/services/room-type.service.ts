@@ -7,7 +7,7 @@ import { RoomType, RoomTypeFormData } from '../models/room-type.model';
   providedIn: 'root'
 })
 export class RoomTypeService {
-  private apiUrl = 'http://localhost:8080/room/api/room-types';
+  private apiUrl = '/room/api/room-types';
 
   constructor(private http: HttpClient) {}
 

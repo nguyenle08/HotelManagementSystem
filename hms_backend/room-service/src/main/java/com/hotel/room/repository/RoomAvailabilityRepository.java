@@ -20,4 +20,7 @@ public interface RoomAvailabilityRepository extends JpaRepository<RoomAvailabili
     List<RoomAvailability> findByReservationId(String reservationId);
 
     List<RoomAvailability> findByDateGreaterThanEqual(LocalDate date);
+
+    // Find availability records for a specific room on a specific date
+    List<RoomAvailability> findByRoomIdAndDate(String roomId, LocalDate date);
 }

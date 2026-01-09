@@ -50,6 +50,20 @@ public class RoomInternalController {
     }
 
     /**
+     * Update room availability status to OCCUPIED (called during check-in)
+     */
+    @PostMapping("/update-to-occupied")
+    public ResponseEntity<String> updateToOccupied(@RequestBody UnlockRoomRequest request) {
+        try {
+            roomService.updateRoomAvailabilityToOccupied(request.getReservationId());
+            return ResponseEntity.ok("Room status updated to OCCUPIED");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to update room status: " + e.getMessage());
+        }
+    }
+
+
+    /**
      * TESTING ONLY - Xóa tất cả availability records sau một ngày cụ thể
      */
     @DeleteMapping("/availability/cleanup")

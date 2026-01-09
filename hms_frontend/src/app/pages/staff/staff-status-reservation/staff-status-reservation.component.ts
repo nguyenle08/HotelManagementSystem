@@ -42,28 +42,28 @@ export class StaffStatusReservationComponent implements OnInit {
     this.loadRooms();
   }
 
-  private mapStatus(status: string): RoomStatusView['status'] {
-    switch (status) {
-      case 'ACTIVE':
-        return 'AVAILABLE';
-      case 'MAINTENANCE':
-        return 'MAINTENANCE';
-      case 'DECOMMISSIONED':
-        return 'CLEANING';
-      default:
-        return 'AVAILABLE';
-    }
-  }
-
   loadRooms(): void {
     this.loading.set(true);
     this.roomService.getRoomStatuses().subscribe({
       next: (response) => {
         if (response.success && response.data) {
-          const mapped: RoomStatusView[] = response.data.map((room) => ({
-            ...room,
-            status: this.mapStatus(room.status),
-          }));
+          const mapped: RoomStatusView[] = response.data.map((room) => {
+            let viewStatus: RoomStatusView['status'] = 'AVAILABLE';
+            // preserve maintenance/cleaning
+            if (room.status === 'MAINTENANCE') viewStatus = 'MAINTENANCE';
+            else if (room.status === 'DECOMMISSIONED') viewStatus = 'CLEANING';
+            // if backend provides reservation info, treat as occupied
+            else if (room.reservationId || room.guestName) viewStatus = 'OCCUPIED';
+
+            return {
+              ...room,
+              status: viewStatus,
+              guestName: room.guestName,
+              checkInDate: room.checkInDate,
+              checkOutDate: room.checkOutDate,
+              reservationId: room.reservationId,
+            } as RoomStatusView;
+          });
           this.rooms.set(mapped);
           this.filterByFloor(this.selectedFloor());
         } else {

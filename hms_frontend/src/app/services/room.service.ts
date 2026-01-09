@@ -9,9 +9,9 @@ import { RoomStatus } from '../models/room-status.model';
   providedIn: 'root',
 })
 export class RoomService {
-  private apiUrl = 'http://localhost:8080/room/api/rooms';
+  private apiUrl = '/room/api/rooms';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   getAllRooms(): Observable<ApiResponse<RoomType[]>> {
     return this.http.get<ApiResponse<RoomType[]>>(this.apiUrl);
@@ -37,7 +37,7 @@ export class RoomService {
   createRoom(payload: {
     roomNumber: string;
     floor: number;
-    status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED';
+    status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | 'RESERVED' | 'OCCUPIED';
     roomTypeId: string;
   }): Observable<ApiResponse<RoomStatus>> {
     return this.http.post<ApiResponse<RoomStatus>>(`${this.apiUrl}/manage`, payload);
@@ -48,7 +48,7 @@ export class RoomService {
     payload: {
       roomNumber: string;
       floor: number;
-      status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED';
+      status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | 'RESERVED' | 'OCCUPIED';
       roomTypeId: string;
     }
   ): Observable<ApiResponse<RoomStatus>> {

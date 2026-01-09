@@ -87,6 +87,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                 path.contains("/user/api/users/me") ||
                 path.startsWith("/api/internal/") ||
                (path.contains("/api/rooms") && !path.contains("/admin")) ||
+               // Allow public access to room-type images so front-end <img> can load them without a token
+               path.contains("/api/room-types/image") ||
                path.contains("/actuator") ||
                path.contains("/eureka");
     }

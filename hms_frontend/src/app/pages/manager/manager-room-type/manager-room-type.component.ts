@@ -273,7 +273,15 @@ export class ManagerRoomTypeComponent implements OnInit {
         if (!this.roomTypeForm.images) {
           this.roomTypeForm.images = [];
         }
-        this.roomTypeForm.images.push(res.url);
+        // Normalize returned URL to relative path so dev proxy and NgOptimizedImage work.
+        try {
+          const u = new URL(res.url);
+          const normalized = u.pathname + (u.search || '');
+          this.roomTypeForm.images.push(normalized);
+        } catch (e) {
+          // If it's not a full URL, push as-is
+          this.roomTypeForm.images.push(res.url);
+        }
         this.isUploadingImage = false;
         // reset input
         input.value = '';

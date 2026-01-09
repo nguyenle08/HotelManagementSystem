@@ -29,7 +29,7 @@ export class ManagerDashboardComponent implements OnInit {
   constructor(
     private roomService: RoomService,
     private reservationService: ReservationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -86,21 +86,15 @@ export class ManagerDashboardComponent implements OnInit {
   }
 
   get usingRooms(): number {
-    const today = new Date();
-    return this.reservations.filter((r) => {
-      if (r.status !== 'CONFIRMED' && r.status !== 'CHECKED_IN') {
-        return false;
-      }
-      const checkIn = new Date(r.checkInDate);
-      const checkOut = new Date(r.checkOutDate);
-      return checkIn.getTime() <= today.getTime() && checkOut.getTime() > today.getTime();
-    }).length;
+    // Count rooms with OCCUPIED or RESERVED status
+    return this.rooms.filter((r) => r.status === 'OCCUPIED' || r.status === 'RESERVED').length;
   }
 
   get freeRooms(): number {
-    const free = this.activeRooms - this.usingRooms;
-    return free > 0 ? free : 0;
+    // Count rooms that are ACTIVE (not occupied, not reserved, not maintenance, not decommissioned)
+    return this.rooms.filter((r) => r.status === 'ACTIVE').length;
   }
+
 
   get recentReservations(): Reservation[] {
     if (!this.reservations?.length) {

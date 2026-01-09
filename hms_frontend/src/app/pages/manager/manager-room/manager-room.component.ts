@@ -5,6 +5,8 @@ import { RoomService } from '../../../services/room.service';
 import { RoomStatus } from '../../../models/room-status.model';
 import { RoomType } from '../../../models/room-type.model';
 import { RoomTypeService } from '../../../services/room-type.service';
+import { ReservationService } from '../../../services/reservation.service';
+import { Reservation } from '../../../models/reservation.model';
 
 @Component({
   selector: 'app-manager-room',
@@ -16,9 +18,11 @@ export class ManagerRoomComponent implements OnInit {
   rooms: RoomStatus[] = [];
   filteredRooms: RoomStatus[] = [];
   roomTypes: RoomType[] = [];
+  reservations: Reservation[] = [];
 
   searchTerm: string = '';
-  filterStatus: 'ALL' | 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' = 'ALL';
+  filterStatus: 'ALL' | 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | 'OCCUPIED' | 'RESERVED' = 'ALL';
+
 
   // summary
   get totalRooms(): number {
@@ -37,6 +41,17 @@ export class ManagerRoomComponent implements OnInit {
     return this.rooms.filter(r => r.status === 'DECOMMISSIONED').length;
   }
 
+  get usingRooms(): number {
+    // Count rooms with OCCUPIED or RESERVED status
+    return this.rooms.filter(r => r.status === 'OCCUPIED' || r.status === 'RESERVED').length;
+  }
+
+  get freeRooms(): number {
+    // Count rooms that are ACTIVE (available)
+    return this.rooms.filter(r => r.status === 'ACTIVE').length;
+  }
+
+
   // modal state
   showAddModal = false;
   showEditModal = false;
@@ -47,9 +62,10 @@ export class ManagerRoomComponent implements OnInit {
   roomForm = {
     roomNumber: '',
     floor: 1,
-    status: 'ACTIVE' as 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED',
+    status: 'ACTIVE' as 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | 'RESERVED' | 'OCCUPIED',
     roomTypeId: ''
   };
+
 
   isLoading = false;
   errorMessage = '';
@@ -58,7 +74,8 @@ export class ManagerRoomComponent implements OnInit {
   constructor(
     private roomService: RoomService,
     private roomTypeService: RoomTypeService
-  ) {}
+    , private reservationService: ReservationService
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -72,7 +89,16 @@ export class ManagerRoomComponent implements OnInit {
       next: (types) => {
         this.roomTypes = types;
       },
-      error: () => {}
+      error: () => { }
+    });
+
+    this.reservationService.getAllReservations().subscribe({
+      next: (res) => {
+        if (res && res.success && res.data) {
+          this.reservations = res.data;
+        }
+      },
+      error: () => { }
     });
 
     this.roomService.getRoomStatuses().subscribe({
@@ -115,10 +141,29 @@ export class ManagerRoomComponent implements OnInit {
     return this.roomTypes.find(rt => rt.roomTypeId === roomTypeId)?.name || '---';
   }
 
+  getRoomImage(room: import('../../../models/room-status.model').RoomStatus): string {
+    // Prefer images included on the room (mapped from roomType by backend)
+    if (room.images && room.images.length > 0) {
+      return room.images[0];
+    }
+
+    // Fallback: try to find roomType object loaded in the component
+    const rt = this.roomTypes.find(r => r.roomTypeId === room.roomTypeId);
+    if (rt && rt.images && rt.images.length > 0) {
+      return rt.images[0];
+    }
+
+    return 'assets/images/default-room.jpg';
+  }
+
   getStatusLabel(status: string): string {
     switch (status) {
       case 'ACTIVE':
         return 'Trống';
+      case 'OCCUPIED':
+        return 'Đang sử dụng';
+      case 'RESERVED':
+        return 'Đã đặt trước';
       case 'MAINTENANCE':
         return 'Bảo trì';
       case 'DECOMMISSIONED':
@@ -147,10 +192,11 @@ export class ManagerRoomComponent implements OnInit {
 
   openEditModal(room: RoomStatus): void {
     this.selectedRoom = room;
+
     this.roomForm = {
       roomNumber: room.roomNumber,
       floor: room.floor,
-      status: room.status,
+      status: room.status as 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | 'RESERVED' | 'OCCUPIED',
       roomTypeId: room.roomTypeId
     };
     this.showEditModal = true;
