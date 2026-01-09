@@ -31,10 +31,31 @@ public class InternalUserController {
                 user.getEmail(),
                 user.getFullname(),
                 user.getPhone(),
-                user.getRole()
+                user.getRole(),
+                user.getIsActive(),
+                user.getLastLogin()
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<java.util.List<UserProfileResponse>> getAllUsers() {
+        java.util.List<User> users = userRepository.findAll();
+        java.util.List<UserProfileResponse> responses = new java.util.ArrayList<>();
+        for (User u : users) {
+            responses.add(new UserProfileResponse(
+                    u.getUserId(),
+                    u.getUsername(),
+                    u.getEmail(),
+                    u.getFullname(),
+                    u.getPhone(),
+                    u.getRole(),
+                    u.getIsActive(),
+                    u.getLastLogin()
+            ));
+        }
+        return ResponseEntity.ok(responses);
     }
 
     @PutMapping("/{userId}")
@@ -67,4 +88,15 @@ public class InternalUserController {
         userRepository.save(user);
         return ResponseEntity.ok().build();
     }
+
+        @PutMapping("/users/{userId}/role")
+        public ResponseEntity<?> updateRole(@PathVariable String userId, @RequestBody com.hotel.auth.dto.AuthUpdateRoleRequest req) {
+                User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new RuntimeException("User not found"));
+                if (req.getRole() != null) {
+                        user.setRole(req.getRole().toUpperCase().replace("ROLE_", ""));
+                        userRepository.save(user);
+                }
+                return ResponseEntity.ok().build();
+        }
 }

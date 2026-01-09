@@ -14,4 +14,8 @@ public class UserProfileResponse {
     private String fullName;
     private String phone;
     private String role;
+    private Boolean isActive;
+    private java.time.LocalDateTime lastLogin;
+
+    // Lombok @AllArgsConstructor provides the all-args constructor
 }
